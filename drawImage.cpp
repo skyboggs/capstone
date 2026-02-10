@@ -37,7 +37,7 @@ void drawImageGrid(Vector2 origin,Vector2 dim,Vector2 pixelCount,Color gridColor
 
 	for(int m=0;m<=pixelCount.x;++m)
 	{
-		DrawLine(origin.x + ((float)m * gapSize.x),origin.y,origin.x + ((float)m * gapSize.x),origin.y + dim.x,gridColor);
+		DrawLine(origin.x + ((float)m * gapSize.x),origin.y,origin.x + ((float)m * gapSize.x),origin.y + dim.y,gridColor);
 	}
 }
 
@@ -49,7 +49,6 @@ int main(int argc, const char** argv)
 
 	if(argc > 2)
 	{
-		cout << "CLA [1]: " << argv[1] << ", [2]: " << argv[2] << endl;
 
 		string commandLineArg = argv[1];
 
@@ -57,6 +56,18 @@ int main(int argc, const char** argv)
 		if(commandLineArg == "--image")
 		{
 			imageName = argv[2];
+		}else
+		{
+			cout << endl;
+			cout << endl;
+			cout << "\033[31mError: \033[37mUnrecognized flag: \033[31m" << commandLineArg << "\033[37m" << endl;
+		  cout << "CLA argv[1]: \033[31m" << argv[1] << "\033[37m, argv[2]: " << argv[2] << endl;
+			cout << endl;
+			cout << "\033[32mUsage:\033[37m" << endl;
+			cout << "		./drawImage --image path/to/image" << endl;
+			cout << endl;
+			cout << endl;
+			return 1;
 		}
 	}
 
@@ -79,7 +90,8 @@ int main(int argc, const char** argv)
 	Vector2 imageOffset{((float)SCREEN_WIDTH - (float)imageWidth)/2, ((float)SCREEN_HEIGHT - (float)imageWidth)/2};
 
 	//Rectangle screenRec{imageOffset.x,imageOffset.y,(float)imageWidth,(float)imageWidth};
-	Rectangle screenRec{imageOffset.x + 20,imageOffset.y + 20,(float)imageWidth-50,(float)imageWidth-50};
+	int imageScale = 40;
+	Rectangle screenRec{imageOffset.x + 20,imageOffset.y + 20,imageRes.x * imageScale, imageRes.y * imageScale};
 	
 
 
