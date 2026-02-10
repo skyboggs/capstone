@@ -6,9 +6,6 @@ using namespace std;
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 720
 
-#define IMAGE_PIXELS_X 9
-#define IMAGE_PIXELS_Y 9
-
 void drawCheckeredBackground(int squareWidth,Color c1, Color c2)
 {
 	Vector2 totalSquares{(float)SCREEN_WIDTH / (float)squareWidth, (float)SCREEN_HEIGHT / (float)squareWidth};
