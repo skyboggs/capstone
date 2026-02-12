@@ -10,12 +10,8 @@ void drawCheckeredBackground(int squareWidth,Color c1, Color c2)
 {
 	Vector2 totalSquares{(float)SCREEN_WIDTH / (float)squareWidth, (float)SCREEN_HEIGHT / (float)squareWidth};
 
-	//cout << "calculated squares: {" << totalSquares.x << ", " << totalSquares.y << "}";
-
 	int squareCountX(totalSquares.x + 1);
 	int squareCountY(totalSquares.y + 1);
-
-	//cout << "squareCount: {" << squareCountX << ", " << squareCountY << "}";
 
 	for(int i=0;i<squareCountY;++i)
 	{
@@ -75,7 +71,6 @@ int main(int argc, const char** argv)
 	InitWindow(SCREEN_WIDTH,SCREEN_HEIGHT,"draw test image");
 
 	// loading the image
-	//Image testImage = LoadImage("assets/City.png");
 	Image testImage = LoadImage(imageName.c_str());
 	Texture2D testTexture = LoadTextureFromImage(testImage);
 
