@@ -61,47 +61,61 @@ void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
 }
 
 
-
-int main(int argc, const char** argv)
+// verify that the CLI is inputted correctly
+bool checkCLA(string& argv1,string& argv2,string& imageName)
 {
-	string imageName = "assets/City.png";
-
-	if(argc > 2)
-	{
-		string commandLineArg = argv[1];
-
 		// checking if the user wants to set a custom image
-		if(commandLineArg == "--image")
+		if(argv1 == "--image")
 		{
-			if(!FileExists(argv[2]))
+			if(!FileExists(argv2.c_str()))
 			{
 				cout << endl;
 				cout << "\033[31m";
 				cout << "!!!" << endl;
-				cout << "Invalid input file: " << argv[2] << endl;
+				cout << "Invalid input file: " << argv2 << endl;
 				cout << "Loading default image instead: " << imageName << endl;
 				cout << "!!!";
 				cout << "\033[0m" << endl;
 				cout << endl;
 			}else
 			{
-				imageName = argv[2];
+				imageName = argv2;
 				cout << "\033[32mValid input file: \033[0m" << imageName << endl;
 			}
+
+			// returning 0 even if the image loaded bad
+			return 0;
 		}else
 		{
 			// printing out an error if the user is not inputted a valid argument
 			cout << endl;
 			cout << endl;
-			cout << "\033[31mError: \033[37mUnrecognized flag: \033[31m" << commandLineArg << "\033[37m" << endl;
-		  cout << "CLA argv[1]: \033[31m" << argv[1] << "\033[37m, argv[2]: " << argv[2] << endl;
+			cout << "\033[31mError: \033[37mUnrecognized flag: \033[31m" << argv1 << "\033[37m" << endl;
+			cout << "CLA argv[1]: \033[31m" << argv1 << "\033[37m, argv[2]: " << argv2 << endl;
 			cout << endl;
 			cout << "\033[32mUsage:\033[37m" << endl;
 			cout << "		./drawImage --image path/to/image" << endl;
 			cout << endl;
 			cout << endl;
+
+			// returning 1 because there was an error with what argument was inputted
 			return 1;
 		}
+		return 0;
+}
+
+
+int main(int argc, const char** argv)
+{
+	string imageName = "assets/City.png";
+
+	// verifying the inputted CLA ( command - line - arguments )
+	if(argc > 2)
+	{
+		string argv1 = argv[1];
+		string argv2 = argv[2];
+
+		checkCLA(argv1, argv2,imageName);
 	}
 
 	// starting up our window
