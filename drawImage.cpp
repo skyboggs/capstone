@@ -45,15 +45,29 @@ int main(int argc, const char** argv)
 
 	if(argc > 2)
 	{
-
 		string commandLineArg = argv[1];
 
 		// checking if the user wants to set a custom image
 		if(commandLineArg == "--image")
 		{
-			imageName = argv[2];
+			if(!FileExists(argv[2]))
+			{
+				cout << endl;
+				cout << "\033[31m";
+				cout << "!!!" << endl;
+				cout << "Invalid input file: " << argv[2] << endl;
+				cout << "Loading default image instead: " << imageName << endl;
+				cout << "!!!";
+				cout << "\033[0m" << endl;
+				cout << endl;
+			}else
+			{
+				imageName = argv[2];
+				cout << "\033[32mValid input file: \033[0m" << imageName << endl;
+			}
 		}else
 		{
+			// printing out an error if the user is not inputted a valid argument
 			cout << endl;
 			cout << endl;
 			cout << "\033[31mError: \033[37mUnrecognized flag: \033[31m" << commandLineArg << "\033[37m" << endl;
