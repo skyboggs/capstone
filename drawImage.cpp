@@ -37,6 +37,32 @@ void drawImageGrid(Vector2 origin,Vector2 dim,Vector2 pixelCount,Color gridColor
 	}
 }
 
+// displays the dimensions of the inputted texture on the top left
+void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
+{
+	string textWidth  = "width:  ";
+	string textHeight = "height: ";
+
+	textWidth  += to_string(inputtedTexture.width);
+	textHeight += to_string(inputtedTexture.height);
+
+	//cout << textWidth << endl;
+	//cout << textHeight << endl;
+
+	int fontSize = 20;
+
+	int stringWidth = MeasureText(textWidth.c_str(),fontSize);
+	stringWidth = (MeasureText(textHeight.c_str(),fontSize) > stringWidth) * MeasureText(textHeight.c_str(),fontSize);
+
+	// drawing a background so the dimension text stands out
+	DrawRectangle(drawLocation.x + 0,drawLocation.y + 0,stringWidth + 20,(fontSize * 2) + 20,BLACK);
+	DrawRectangle(drawLocation.x + 5,drawLocation.y + 5,stringWidth + 10,(fontSize * 2) + 10,WHITE);
+
+	// drawing the dimensions to the screen
+	DrawText(textWidth.c_str() ,drawLocation.x + 10,drawLocation.y + 10           ,fontSize,BLACK);
+	DrawText(textHeight.c_str(),drawLocation.x + 10,drawLocation.y + 10 + fontSize,fontSize,BLACK);
+}
+
 
 
 int main(int argc, const char** argv)
@@ -104,6 +130,7 @@ int main(int argc, const char** argv)
 	
 
 
+	Vector2 dimensionDrawLocation{300,300};
 
 	// starting our draw loop
 	while(!WindowShouldClose())
@@ -111,13 +138,15 @@ int main(int argc, const char** argv)
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
-		DrawRectangle(0,0,100,100,RED);
 		//drawCheckeredBackground(40, WHITE, BLACK);
 		drawCheckeredBackground(40, Color{255,200,200,255}, BLACK);
 
 		//DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint);
 		DrawTexturePro(testTexture, sourceImageRec, screenRec, Vector2{0,0}, 0.0f, WHITE);
+
 		drawImageGrid(Vector2{screenRec.x,screenRec.y},Vector2{screenRec.width,screenRec.height},Vector2{imageRes.x,imageRes.y},RED);
+
+		drawTextureDimensions(testTexture,dimensionDrawLocation);
 
 		EndDrawing();
 	}
