@@ -46,9 +46,6 @@ void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
 	textWidth  += to_string(inputtedTexture.width);
 	textHeight += to_string(inputtedTexture.height);
 
-	//cout << textWidth << endl;
-	//cout << textHeight << endl;
-
 	int fontSize = 20;
 
 	int stringWidth = MeasureText(textWidth.c_str(),fontSize);
