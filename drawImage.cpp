@@ -127,7 +127,7 @@ int main(int argc, const char** argv)
 	
 
 
-	Vector2 dimensionDrawLocation{300,300};
+	Vector2 dimensionDrawLocation{0,0};
 
 	// starting our draw loop
 	while(!WindowShouldClose())
