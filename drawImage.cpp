@@ -62,7 +62,7 @@ void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
 
 
 // verify that the CLI is inputted correctly
-bool checkCLA(string& argv1,string& argv2,string& imageName)
+bool checkCLA(string& argv1,string& argv2,string& imagePath)
 {
 		// checking if the user wants to set a custom image
 		if(argv1 == "--image")
@@ -73,14 +73,14 @@ bool checkCLA(string& argv1,string& argv2,string& imageName)
 				cout << "\033[31m";
 				cout << "!!!" << endl;
 				cout << "Invalid input file: " << argv2 << endl;
-				cout << "Loading default image instead: " << imageName << endl;
+				cout << "Loading default image instead: " << imagePath << endl;
 				cout << "!!!";
 				cout << "\033[0m" << endl;
 				cout << endl;
 			}else
 			{
-				imageName = argv2;
-				cout << "\033[32mValid input file: \033[0m" << imageName << endl;
+				imagePath = argv2;
+				cout << "\033[32mValid input file: \033[0m" << imagePath << endl;
 			}
 
 			// returning 0 even if the image loaded bad
@@ -107,7 +107,7 @@ bool checkCLA(string& argv1,string& argv2,string& imageName)
 
 int main(int argc, const char** argv)
 {
-	string imageName = "assets/City.png";
+	string imagePath = "assets/City.png";
 
 	// verifying the inputted CLA ( command - line - arguments )
 	if(argc > 2)
@@ -115,14 +115,14 @@ int main(int argc, const char** argv)
 		string argv1 = argv[1];
 		string argv2 = argv[2];
 
-		checkCLA(argv1, argv2,imageName);
+		checkCLA(argv1, argv2,imagePath);
 	}
 
 	// starting up our window
 	InitWindow(SCREEN_WIDTH,SCREEN_HEIGHT,"draw test image");
 
 	// loading the image
-	Image testImage = LoadImage(imageName.c_str());
+	Image testImage = LoadImage(imagePath.c_str());
 	Texture2D testTexture = LoadTextureFromImage(testImage);
 
 
