@@ -104,6 +104,20 @@ bool checkCLA(string& argv1,string& argv2,string& imagePath)
 		return 0;
 }
 
+void drawTextureTitle(string& imageName)
+{
+	//cout << imageName << endl;
+	int fontSize(32);
+	float textWidth = MeasureText(imageName.c_str(),fontSize);
+	int recPadding = 5;
+	int recBorderSize = 5;
+
+	// drawing our background to make the text stand out
+	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * (recPadding + recBorderSize)))/2),0,textWidth + (2 * (recPadding + recBorderSize)),fontSize + (2 * (recPadding + recBorderSize)),BLACK);
+	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * recPadding))/2),recBorderSize,textWidth + (2 * recPadding),fontSize + (2 * recPadding),WHITE);
+
+	DrawText(imageName.c_str(),(SCREEN_WIDTH/2) - (textWidth/2),recBorderSize + recPadding,fontSize,BLACK);
+}
 
 int main(int argc, const char** argv)
 {
@@ -157,6 +171,8 @@ int main(int argc, const char** argv)
 
 	Vector2 dimensionDrawLocation{0,0};
 
+	string imageName = GetFileName(imagePath.c_str());
+
 	// starting our draw loop
 	while(!WindowShouldClose())
 	{
@@ -172,6 +188,7 @@ int main(int argc, const char** argv)
 		drawImageGrid(Vector2{screenRec.x,screenRec.y},Vector2{screenRec.width,screenRec.height},Vector2{imageRes.x,imageRes.y},RED);
 
 		drawTextureDimensions(testTexture,dimensionDrawLocation);
+		drawTextureTitle(imageName);
 
 		EndDrawing();
 	}
