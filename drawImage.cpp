@@ -147,10 +147,10 @@ int main(int argc, const char** argv)
 	while(!WindowShouldClose())
 	{
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(BLACK);
 
 		//drawCheckeredBackground(40, WHITE, BLACK);
-		drawCheckeredBackground(40, Color{255,200,200,255}, BLACK);
+		drawCheckeredBackground(20, Color{255,200,200,100}, Color{0,0,0,100});
 
 		//DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint);
 		DrawTexturePro(testTexture, sourceImageRec, screenRec, Vector2{0,0}, 0.0f, WHITE);
