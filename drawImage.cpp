@@ -113,8 +113,8 @@ void drawTextureTitle(string& imageName)
 	int recBorderSize = 5;
 
 	// drawing our background to make the text stand out
-	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * (recPadding + recBorderSize)))/2),0,textWidth + (2 * (recPadding + recBorderSize)),fontSize + (2 * (recPadding + recBorderSize)),BLACK);
-	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * recPadding))/2),recBorderSize,textWidth + (2 * recPadding),fontSize + (2 * recPadding),WHITE);
+	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * (recPadding + recBorderSize)))/2),0            ,textWidth + (2 * (recPadding + recBorderSize)),fontSize + (2 * (recPadding + recBorderSize)),BLACK);
+	DrawRectangle((SCREEN_WIDTH/2) - ((textWidth + (2 * recPadding))/2)                  ,recBorderSize,textWidth + (2 * recPadding)                  ,fontSize + (2 * recPadding)                  ,WHITE);
 
 	DrawText(imageName.c_str(),(SCREEN_WIDTH/2) - (textWidth/2),recBorderSize + recPadding,fontSize,BLACK);
 }
