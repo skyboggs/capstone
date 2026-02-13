@@ -125,19 +125,33 @@ int main(int argc, const char** argv)
 	Image testImage = LoadImage(imageName.c_str());
 	Texture2D testTexture = LoadTextureFromImage(testImage);
 
-	Vector2 imageRes{(float)testTexture.width,(float)testTexture.height};
-	//cout << "texture dimensions: " << testTexture.width << ", " << testTexture.height << endl;
 
-	// defining the size of the image so we can easily draw it later
+
+	//////////////////////////////////////////////////////////////////////////
+	// calculating the scaled up ratio of the image that fits in the screen //
+	//////////////////////////////////////////////////////////////////////////
+	Vector2 imageRes{(float)testTexture.width,(float)testTexture.height}; // <-- setting this incase I decide to change the name to something more formal for the texture variable name
+
+	// calculating the size of the biggest square the texture can be before it clips / goes over the edge of the screen
+	int imageWidth = ((SCREEN_WIDTH <= SCREEN_HEIGHT) * SCREEN_WIDTH) + ((SCREEN_WIDTH > SCREEN_HEIGHT) * SCREEN_HEIGHT);
+	
+	// calculating the ratio each side of the texture is scaled to fill the screen
+	Vector2 scaleRatio{(float)imageWidth / imageRes.x,(float)imageWidth / imageRes.y};
+
+	float screenScale = ((scaleRatio.x <= scaleRatio.y) * scaleRatio.x) + ((scaleRatio.x > scaleRatio.y) * scaleRatio.y);
+
+	// multiplying by 0.95 to allow a gap between the image and the border
+	screenScale *= 0.95f; 
+	screenScale = (int)screenScale;
+
+	// setting the offset of the texture from the middle of the screen
+	Vector2 imageOffset{((float)SCREEN_WIDTH - (float)(imageRes.x * screenScale))/2, ((float)SCREEN_HEIGHT - (float)(imageRes.y * screenScale))/2};
+
+
+
+	// defining the rectangles that we will use to draw the texture to the screen
 	Rectangle sourceImageRec{0,0,imageRes.x,imageRes.y};
-
-	int imageWidth = ((SCREEN_WIDTH < SCREEN_HEIGHT) * SCREEN_WIDTH) + ((SCREEN_WIDTH > SCREEN_HEIGHT) * SCREEN_HEIGHT);
-
-	Vector2 imageOffset{((float)SCREEN_WIDTH - (float)imageWidth)/2, ((float)SCREEN_HEIGHT - (float)imageWidth)/2};
-
-	//Rectangle screenRec{imageOffset.x,imageOffset.y,(float)imageWidth,(float)imageWidth};
-	int imageScale = 40;
-	Rectangle screenRec{imageOffset.x + 20,imageOffset.y + 20,imageRes.x * imageScale, imageRes.y * imageScale};
+	Rectangle screenRec{imageOffset.x,imageOffset.y,imageRes.x * screenScale, imageRes.y * screenScale};
 	
 
 
