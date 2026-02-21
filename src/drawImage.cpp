@@ -1,4 +1,5 @@
 #include <iostream>
+#include "tileUtils.h"
 #include "raylib.h"
 
 using namespace std;
@@ -6,21 +7,6 @@ using namespace std;
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 720
 
-void drawCheckeredBackground(int squareWidth,Color c1, Color c2)
-{
-	Vector2 totalSquares{(float)SCREEN_WIDTH / (float)squareWidth, (float)SCREEN_HEIGHT / (float)squareWidth};
-
-	int squareCountX(totalSquares.x + 1);
-	int squareCountY(totalSquares.y + 1);
-
-	for(int i=0;i<squareCountY;++i)
-	{
-		for(int m=0;m<squareCountX;++m)
-		{
-			DrawRectangle(squareWidth * m,squareWidth * i,squareWidth,squareWidth,(i + m) % 2 == 0 ? c1 : c2);
-		}
-	}
-}
 
 void drawImageGrid(Vector2 origin,Vector2 dim,Vector2 pixelCount,Color gridColor)
 {
@@ -61,6 +47,7 @@ void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
 }
 
 
+/*
 // verify that the CLI is inputted correctly
 bool checkCLA(string& argv1,string& argv2,string& imagePath)
 {
@@ -103,6 +90,7 @@ bool checkCLA(string& argv1,string& argv2,string& imagePath)
 		}
 		return 0;
 }
+*/
 
 void drawTextureTitle(string& imageName)
 {
@@ -151,6 +139,7 @@ int main(int argc, const char** argv)
 	
 	// calculating the ratio each side of the texture is scaled to fill the screen
 	Vector2 scaleRatio{(float)imageWidth / imageRes.x,(float)imageWidth / imageRes.y};
+	//cout << scaleRatio.x << ", " << scaleRatio.y << endl;
 
 	float screenScale = ((scaleRatio.x <= scaleRatio.y) * scaleRatio.x) + ((scaleRatio.x > scaleRatio.y) * scaleRatio.y);
 
@@ -166,6 +155,7 @@ int main(int argc, const char** argv)
 	// defining the rectangles that we will use to draw the texture to the screen
 	Rectangle sourceImageRec{0,0,imageRes.x,imageRes.y};
 	Rectangle screenRec{imageOffset.x,imageOffset.y,imageRes.x * screenScale, imageRes.y * screenScale};
+
 	
 
 
@@ -180,10 +170,11 @@ int main(int argc, const char** argv)
 		ClearBackground(BLACK);
 
 		//drawCheckeredBackground(40, WHITE, BLACK);
-		drawCheckeredBackground(20, Color{255,200,200,100}, Color{0,0,0,100});
+		drawCheckeredBackground(SCREEN_WIDTH,SCREEN_HEIGHT,20, Color{255,200,200,100}, Color{0,0,0,100});
 
 		//DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint);
 		DrawTexturePro(testTexture, sourceImageRec, screenRec, Vector2{0,0}, 0.0f, WHITE);
+		
 
 		drawImageGrid(Vector2{screenRec.x,screenRec.y},Vector2{screenRec.width,screenRec.height},Vector2{imageRes.x,imageRes.y},RED);
 

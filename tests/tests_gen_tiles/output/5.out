@@ -1,0 +1,40 @@
+Tile size: 
+[90m[107m. [0m[90m[107m. [0m. 
+[90m[107m. [0m[90m[107m. [0m. 
+. . . 
+
+Tile origin locations: 
+[90m[107m. [0m[90m[107m. [0m. 
+[90m[107m. [0m[90m[107m. [0m. 
+. . . 
+
+There are 4 tiles:
+-- Tile --
+x     : 0
+y     : 0
+width : 2
+height: 2
+----------
+
+-- Tile --
+x     : 1
+y     : 0
+width : 2
+height: 2
+----------
+
+-- Tile --
+x     : 0
+y     : 1
+width : 2
+height: 2
+----------
+
+-- Tile --
+x     : 1
+y     : 1
+width : 2
+height: 2
+----------
+
+testTile2.size(): 4
