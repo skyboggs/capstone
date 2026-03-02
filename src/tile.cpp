@@ -6,6 +6,7 @@
 using std::cout;
 using std::endl;
 using std::ostream;
+using std::string;
 
 
 tile::tile()
@@ -64,5 +65,26 @@ ostream& operator<<(ostream& os, const tile& t)
 	os << "height: " << t.height << endl;
 	os << "----------" << endl;
 	return os;
+}
+
+
+string operator+(const tile& t, string rhs)
+{
+	string newString("");
+	newString = "Tile : [";
+	newString += std::to_string(t.coordX);
+	newString += 	" , ";
+	newString += 	std::to_string(t.coordY);
+	newString += 	"] (";
+	newString += std::to_string(t.width);
+	newString += " x ";
+	newString += std::to_string(t.height);
+	newString += ")";
+
+	//rhs = rhs + newString;
+
+	return newString;
+	//os << "Tile : " << "[ " << t.coordX << ", " << t.coordY << "] ( " << t.width << " x " << t.height << " )";
+	//return os;
 }
 

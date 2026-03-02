@@ -4,13 +4,19 @@ header=../header
 graphics=-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 cc=clang++
 
-current: tileUtilsVisual
+current: cell
 
 all: demoApp tile tileUtils tileUtilsVisual drawImage
 
 
 demoApp: demoApp.cpp
 	$(cc) $(graphics) $(lib) demoApp.cpp -o $@ -I $(header)
+
+cell: cell.o tile.o
+	$(cc) cellTest.cpp cell.o tile.o -I $(header) -o $@
+
+cell.o: cell.cpp
+	$(cc) -c cell.cpp -I $(header) -o $@
 
 tile: tile.o
 	#$(cc) tileTest.cpp -I ../header -o $@
@@ -40,4 +46,5 @@ clean:
 	-rm tileUtilsVisual
 	-rm demoApp
 	-rm drawImage
+	-rm cell
 	-rm *.o

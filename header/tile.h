@@ -39,6 +39,8 @@ struct tile
 	Rectangle generateRec();
 
 	friend std::ostream& operator<<(std::ostream&,const tile&);
+	friend std::string operator+(const tile&, std::string);
+	//friend std::ostream& operator>>(std::ostream&,const tile&);
 };
 
 
