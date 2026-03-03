@@ -6,7 +6,7 @@ cc=clang++
 
 current: cell
 
-all: demoApp tile tileUtils tileUtilsVisual drawImage
+all: demoApp tile tileUtils tileUtilsVisual drawImage cell
 
 
 demoApp: demoApp.cpp
