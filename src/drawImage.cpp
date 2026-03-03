@@ -109,7 +109,7 @@ void drawTextureTitle(string& imageName)
 
 int main(int argc, const char** argv)
 {
-	string imagePath = "assets/City.png";
+	string imagePath = "../assets/City.png";
 
 	// verifying the inputted CLA ( command - line - arguments )
 	if(argc > 2)
