@@ -13,7 +13,7 @@ struct tile
 	int width;
 	int height;
 	int coordX;
-	int coordY;
+	int coordY; // follows graphics convention of starting at 0 on the top
 
 	///////////////////
 	// CONSTRUCTORS: //
