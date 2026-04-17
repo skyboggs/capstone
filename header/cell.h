@@ -46,7 +46,7 @@ struct cell
 	// if generateRoughColor is false, then we will just return BLACK
 	Color getCellColor(); 
 	void pickTile();
-	void updateTiles(Vector2,Color);
+	bool updateTiles(Vector2,Color);
 	void updateRoughColor();
 	// take position of the updated cell ( we only really care about the pixel color at this location )
 	// take the current position of this cell and check the pixels that was updated

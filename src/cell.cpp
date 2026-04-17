@@ -46,7 +46,8 @@ void cell::pickTile()
 	cout << "\033[31m!! TODO : void cell::pickTile()!!\033[0m";
 }
 
-void cell::updateTiles(Vector2 offset,Color newColor)
+// this updates what tiles are now allowed at the current position
+bool cell::updateTiles(Vector2 offset,Color newColor)
 {
 	cout << "\033[31m!! TODO : void cell::updateTiles(Vector2, Color)!!\033[0m";
 }
