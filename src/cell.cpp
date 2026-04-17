@@ -50,11 +50,26 @@ void cell::pickTile()
 bool cell::updateTiles(Vector2 offset,Color newColor)
 {
 	cout << "\033[31m!! TODO : void cell::updateTiles(Vector2, Color)!!\033[0m";
+
+  for(int i=0;i<possibleTiles.size();++i)
+  {
+    tile& currentTile = possibleTiles.at(i);
+    //Color currentTileColor = 
+    //float currentTolerence = generateColorTolerence(newColor,currentTileColor);
+
+
+
+  }
+
+  // if there are no options left after updating the cell, then we return false
+
+  return true;
 }
 
 void cell::updateRoughColor()
 {
 	cout << "\033[31m!! TODO : void cell::updateRoughColor()!!\033[0m";
+  if(!generateRoughColor) { return; }
 }
 
 ostream& operator<<(ostream& os, const cell& rhs)
