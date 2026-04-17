@@ -168,3 +168,12 @@ void drawCheckeredBackground(int SCREEN_WIDTH,int SCREEN_HEIGHT, int squareWidth
 		}
 	}
 }
+
+float generateColorTolerence(Color c1, Color c2)
+{
+  float colorTolerence = 1.0f;
+  cout << "\033[31m!! TODO : void generateColorTolerence(c1,c2)!!\033[0m" << endl;
+
+
+  return colorTolerence;
+}

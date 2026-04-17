@@ -41,4 +41,6 @@ bool checkCLA(string&,string&,string&);
 //   int squareHeight  - dimensions of the tiles being drawn on the screen in pixels
 void drawCheckeredBackground(int,int, int,Color,Color);
 
+float generateColorTolerence();
+
 #endif
