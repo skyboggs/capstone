@@ -1,42 +1,58 @@
 
-lib=../lib/libraylib.a
-header=../header
-graphics=-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-cc=clang++
+# Select platform by uncommenting one line (comment out the other):
+#PLATFORM = mac
+PLATFORM = WSL
 
-current: cell
+header = ../header
 
-all: demoApp tile tileUtils tileUtilsVisual drawImage cell
+ifeq ($(PLATFORM), mac)
+    lib          = ../lib/mac/libraylib.a
+    raylibHeader = ../raylibHeader/mac
+    graphics     = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+    cc           = clang++
+else ifeq ($(PLATFORM), WSL)
+    lib          = ../lib/WSL/libraylib.a
+    raylibHeader = ../raylibHeader/WSL
+    graphics     = -lGL -lm -lpthread -ldl -lrt -lX11
+    cc           = g++
+endif
+
+current: drawTileOptions
+
+all: demoApp tile tileUtils tileUtilsVisual drawImage cell drawTileOptions
 
 
 demoApp: demoApp.cpp
-	$(cc) $(graphics) $(lib) demoApp.cpp -o $@ -I $(header)
+	$(cc) demoApp.cpp -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 cell: cell.o tile.o
-	$(cc) cellTest.cpp cell.o tile.o -I $(header) -o $@
+	$(cc) cellTest.cpp cell.o tile.o -I $(header) -I $(raylibHeader) -o $@
 
 cell.o: cell.cpp
-	$(cc) -c cell.cpp -I $(header) -o $@
+	$(cc) -c cell.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tile: tile.o
 	#$(cc) tileTest.cpp -I ../header -o $@
-	$(cc) tileTest.cpp tile.o -I $(header) -o $@
+	$(cc) tileTest.cpp tile.o -I $(header) -I $(raylibHeader) -o $@
 
 tile.o: tile.cpp
-	$(cc) -c tile.cpp -I $(header) -o $@
+	$(cc) -c tile.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tileUtils: tileUtilsTest.cpp tileUtils.o tile.o
-	$(cc) $(graphics) $(lib) tileUtilsTest.cpp tileUtils.o tile.o -I $(header) -o $@
+	$(cc) tileUtilsTest.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 tileUtils.o: tileUtils.cpp 
-	$(cc) -c tileUtils.cpp -I $(header) -o $@
+	$(cc) -c tileUtils.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tileUtilsVisual: tileUtilsVisual.cpp tileUtils.o tile.o
 	#$(cc) tileUtilsVisual.cpp -I ../header
-	$(cc) $(graphics) $(lib) tileUtilsVisual.cpp tileUtils.o tile.o -o $@ -I $(header)
+	$(cc) tileUtilsVisual.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 drawImage: drawImage.cpp tileUtils.o tile.o
-	$(cc) $(graphics) $(lib) drawImage.cpp tileUtils.o tile.o -o $@ -I $(header)
+	$(cc) drawImage.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
+
+drawTileOptions: drawTileOptions.cpp tileUtils.o tile.o
+	$(cc) drawTileOptions.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 
 clean:
