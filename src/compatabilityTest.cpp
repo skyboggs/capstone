@@ -22,7 +22,9 @@ int main(int argc, const char** argv)
 
 	InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"visualizing tiles");
 
-  { // wrapping the below variables in a different scope so they deconstruct before CloseWindow call
+// wrapping the below variables in a different scope so they deconstruct before CloseWindow call
+  { 
+
 // declaring our variables
   textureMapping genDetails(imagePath,Vector2{(float)tileWidth,(float)tileHeight});
   visualizerSettings visConfig;
@@ -31,25 +33,11 @@ int main(int argc, const char** argv)
 ////// setting our variables and parameters /////////
 /////////////////////////////////////////////////////
 
-// setting genDetails variables
-  //genDetails.image     = LoadImage(imagePath.c_str());
-  //genDetails.texture   = LoadTextureFromImage(genDetails.image);
-  //genDetails.setNewTileSize();
-
 // setting genDetails Rectangles
   generateTileRecs(genDetails,windowDims);
   
-// getting the dimensions of the window that the compatability visualizer is being drawn in
-  const Rectangle& lastRec = genDetails.destRecs.at(genDetails.destRecs.size()-1);
-
-  Vector2 displayDimensions
-  {
-    (lastRec.x + lastRec.width)  - genDetails.destRecs[0].x,
-    (lastRec.y + lastRec.height) - genDetails.destRecs[0].y
-  };
-
 // initializiing our textures and drawing the background
-  RenderTexture2D t1         = LoadRenderTexture(displayDimensions.x, displayDimensions.y);
+  RenderTexture2D t1         = LoadRenderTexture(genDetails.displayDims.x, genDetails.displayDims.y);
   RenderTexture2D background = LoadRenderTexture(windowDims.x       , windowDims.y       );
 
   BeginTextureMode(background);
@@ -81,13 +69,13 @@ int main(int argc, const char** argv)
 //////////////////////////
 	while(!WindowShouldClose())
 	{
-    //printVec(genDetails.displayDims,"displayDims");
     if(IsKeyDown(KEY_LEFT )) { drawLocation.x -= adjustmentAmount; }
     if(IsKeyDown(KEY_RIGHT)) { drawLocation.x += adjustmentAmount; }
     if(IsKeyDown(KEY_UP   )) { drawLocation.y -= adjustmentAmount; }
     if(IsKeyDown(KEY_DOWN )) { drawLocation.y += adjustmentAmount; }
     if(IsKeyDown(KEY_A    )) { currentAngle   -= adjustmentAmount; }
     if(IsKeyDown(KEY_D    )) { currentAngle   += adjustmentAmount; }
+
   // checking for new user input
     updateConfig(visConfig);
 
@@ -117,7 +105,7 @@ int main(int argc, const char** argv)
       DrawTexturePro
       (
         t1.texture,
-        (Rectangle){ 0, 0, (float)displayDimensions.x, -(float)displayDimensions.y},
+        (Rectangle){ 0, 0, (float)genDetails.displayDims.x, -(float)genDetails.displayDims.y},
         (Rectangle){ (float)drawLocation.x, (float)drawLocation.y, 400, 400},
         Vector2{(float)200.0f,(float)200.0f},
         currentAngle,
