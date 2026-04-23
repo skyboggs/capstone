@@ -8,7 +8,7 @@ using namespace std;
 
 
 #define WINDOW_WIDTH 1000
-#define WINDOW_HEIGHT 600
+#define WINDOW_HEIGHT 800
 
 
 
@@ -33,6 +33,7 @@ struct visualizerSettings
   Color highlightColor = GREEN;
 };
 
+// checks for user input and updates visualizerSettings if the user activated any shortcut keys
 void updateConfig(visualizerSettings& visConfig)
 {
   // toggling drawing the lines for the grid
@@ -116,7 +117,7 @@ void drawTileCompatabilities
           tileDestRecs[0].x + (i * tileDestRecs[0].width),
           tileDestRecs[0].y + ((tileWindowDims.y + 1) * tileDestRecs[0].height),
         },
-        1.0f,
+        1.9f,
         lineColor
       );
   	}
@@ -136,7 +137,7 @@ void drawTileCompatabilities
           tileDestRecs[0].x + ((float)(tileWindowDims.x + (float)1) * tileDestRecs[0].width),
           tileDestRecs[0].y + (m * tileDestRecs[0].height)
         },
-        1.5f,
+        1.9f,
         lineColor
       );
 
@@ -420,6 +421,7 @@ int main(int argc, const char** argv)
 		EndDrawing();
 	}
 
+// unloading images and textures
 	UnloadImage(generationDetails.image);
 	UnloadTexture(generationDetails.texture);
 
