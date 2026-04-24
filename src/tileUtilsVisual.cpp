@@ -24,7 +24,7 @@ void generateTileRecs(vector<Rectangle>& sourceRecs,vector<Rectangle>& destRecs,
 
 	// holds a vector of the tiles that go over the inputted texture
 	//vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,true,false);
-	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,false,false);
+	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,false,false,false);
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
 	Vector2 tileWindowDims{(imageRes.x-tileDims.x) + 1, (imageRes.y-tileDims.y) + 1};

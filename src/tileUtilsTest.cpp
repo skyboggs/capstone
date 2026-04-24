@@ -33,9 +33,9 @@ int main(int argc, const char** argv)
 		sampleTileWidth   = 2;
 		sampleTileHeight  = 2;
 
-		testTile = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,true,testMode);
+		testTile = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,false,true,testMode);
 
-		vector<tile> testTile2 = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,false,testMode);
+		vector<tile> testTile2 = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,false,false,testMode);
 		cout << "testTile2.size(): " << testTile2.size() << endl;
 		//vector<tile> genTileList(int width,int height,int tileSize,bool mirroredTiles)
 	}else
@@ -58,7 +58,7 @@ int main(int argc, const char** argv)
 
 		cout << "Generate tile list:" << endl;
 		cout << "----------------------" << endl;
-		testTile = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,true,testMode);
+		testTile = genTileList(sampleImageWidth,sampleImageHeight,sampleTileWidth,sampleTileHeight,false,false,true,testMode);
 		cout << "----------------------" << endl;
 	}
 	cout << flush;
