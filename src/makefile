@@ -32,7 +32,6 @@ cell.o: cell.cpp
 	$(cc) -c cell.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tile: tile.o
-	#$(cc) tileTest.cpp -I ../header -o $@
 	$(cc) tileTest.cpp tile.o -I $(header) -I $(raylibHeader) -o $@
 
 tile.o: tile.cpp
@@ -45,7 +44,6 @@ tileUtils.o: tileUtils.cpp
 	$(cc) -c tileUtils.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tileUtilsVisual: tileUtilsVisual.cpp tileUtils.o tile.o
-	#$(cc) tileUtilsVisual.cpp -I ../header
 	$(cc) tileUtilsVisual.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 drawImage: drawImage.cpp tileUtils.o tile.o
@@ -55,7 +53,6 @@ drawTileOptions: drawTileOptions.cpp tileUtils.o tile.o
 	$(cc) drawTileOptions.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 compatabilityVisTools.o: compatabilityVisTools.cpp tileUtils.o tile.o
-	#$(cc) compatabilityVisTools.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 	$(cc) compatabilityVisTools.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(graphics)
 
 compatabilityTest: compatabilityTest.cpp compatabilityVisTools.o
