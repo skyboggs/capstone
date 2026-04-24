@@ -15,8 +15,9 @@ using std::string;
 //   int tileWidth            - tile width in pixels
 //   int tileHeight           - tile height in pixels
 //   bool mirroredTiles       - mirror the tiles | account for overlap when generating coords
+//   bool mirroredTiles       - mirror the tiles | account for overlap when generating coords
 //   bool printGeneratedTiles - print generated tiles in console
-vector<tile> genTileList(int,int,int,int,bool,bool,bool);
+vector<tile> genTileList(int,int,int,int,bool,bool,bool,bool);
 
 // inputs:
 //   string& argv1     - expects --image or other key commands if added
@@ -42,5 +43,7 @@ bool checkCLA(string&,string&,string&);
 void drawCheckeredBackground(int,int, int,Color,Color);
 
 float generateColorTolerence();
+
+void generateOverlappingImage(const Image& sourceImage,Image& newImage);
 
 #endif

@@ -47,50 +47,6 @@ void drawTextureDimensions(Texture2D& inputtedTexture, Vector2& drawLocation)
 }
 
 
-/*
-// verify that the CLI is inputted correctly
-bool checkCLA(string& argv1,string& argv2,string& imagePath)
-{
-		// checking if the user wants to set a custom image
-		if(argv1 == "--image")
-		{
-			if(!FileExists(argv2.c_str()))
-			{
-				cout << endl;
-				cout << "\033[31m";
-				cout << "!!!" << endl;
-				cout << "Invalid input file: " << argv2 << endl;
-				cout << "Loading default image instead: " << imagePath << endl;
-				cout << "!!!";
-				cout << "\033[0m" << endl;
-				cout << endl;
-			}else
-			{
-				imagePath = argv2;
-				cout << "\033[32mValid input file: \033[0m" << imagePath << endl;
-			}
-
-			// returning 0 even if the image loaded bad
-			return 0;
-		}else
-		{
-			// printing out an error if the user is not inputted a valid argument
-			cout << endl;
-			cout << endl;
-			cout << "\033[31mError: \033[37mUnrecognized flag: \033[31m" << argv1 << "\033[37m" << endl;
-			cout << "CLA argv[1]: \033[31m" << argv1 << "\033[37m, argv[2]: " << argv2 << endl;
-			cout << endl;
-			cout << "\033[32mUsage:\033[37m" << endl;
-			cout << "		./drawImage --image path/to/image" << endl;
-			cout << endl;
-			cout << endl;
-
-			// returning 1 because there was an error with what argument was inputted
-			return 1;
-		}
-		return 0;
-}
-*/
 
 void drawTextureTitle(string& imageName)
 {
@@ -125,7 +81,10 @@ int main(int argc, const char** argv)
 
 	// loading the image
 	Image testImage = LoadImage(imagePath.c_str());
-	Texture2D testTexture = LoadTextureFromImage(testImage);
+	Image overlappingImage;
+  generateOverlappingImage(testImage,overlappingImage);
+	Texture2D testTexture = LoadTextureFromImage(overlappingImage);
+	//Texture2D testTexture = LoadTextureFromImage(testImage);
 
 
 
@@ -187,6 +146,7 @@ int main(int argc, const char** argv)
 	// making sure we unload the images
 	UnloadTexture(testTexture);
 	UnloadImage(testImage);
+	UnloadImage(overlappingImage);
 
 	CloseWindow();
 

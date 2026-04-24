@@ -176,7 +176,8 @@ void generateTileRecs
   const Vector2& tileDims = detailMapper.tileDims;
                                                           
 // setting genTileList options                                 
-  bool mirroredTiles      (false);
+  bool mirroredX          (false);
+  bool mirroredY          (false);
   bool printGeneratedTiles(false);
   bool testing            (false);
 
@@ -186,7 +187,7 @@ void generateTileRecs
 
 
 	// holds a vector of the tiles that go over the inputted texture
-	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,mirroredTiles,printGeneratedTiles,testing);
+	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,mirroredX,mirroredY,printGeneratedTiles,testing);
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
 	Vector2 tileWindowDims{(imageRes.x-tileDims.x) + 1, (imageRes.y-tileDims.y) + 1};

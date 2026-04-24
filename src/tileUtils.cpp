@@ -14,11 +14,15 @@ using std::flush;
 // int width  of image
 // int height of image
 // int tileSize in a square shape
-// bool mirror the tiles | account for overlap when generating coords
+// bool mirror the tiles in the x or y axis | account for overlap when generating coords
 // bool print generated tiles in console
-vector<tile> genTileList(int width,int height,int tileWidth, int tileHeight,bool mirroredTiles, bool printGeneratedTiles, bool testing)
+vector<tile> genTileList(int width,int height,int tileWidth, int tileHeight,bool mirroredX,bool mirroredY, bool printGeneratedTiles, bool testing)
 {
 	vector<tile> tileList;
+  Vector2 tileListBoost{0.0f,0.0f};
+
+  if(mirroredX) { tileListBoost.x = (float)(tileWidth  - 1); }
+  if(mirroredY) { tileListBoost.y = (float)(tileHeight - 1); }
 
 	// this generates x's for the source squares, for example:
 	// a 3 x 3 cube with a tile size of 3 x 1 will look like:
@@ -31,9 +35,9 @@ vector<tile> genTileList(int width,int height,int tileWidth, int tileHeight,bool
 	{ 
 		cout << "Tile size: " << endl; 
 
-		for(int i=0;i<height;++i)
+		for(int i=0;i<height + tileListBoost.y;++i)
 		{
-			for(int m=0;m<width;++m)
+			for(int m=0;m<width + tileListBoost.x;++m)
 			{
 				if(i < tileHeight)
 				{
@@ -64,13 +68,13 @@ vector<tile> genTileList(int width,int height,int tileWidth, int tileHeight,bool
 	}
 
 
-	for(int i=0;i < height;++i)
+	for(int i=0;i < height + tileListBoost.y;++i)
 	{
-		for(int m=0;m < width;++m)
+		for(int m=0;m < width + tileListBoost.x;++m)
 		{
-			if(i + tileHeight <= height)
+			if(i + tileHeight <= height + tileListBoost.y)
 			{
-				if(m + tileWidth <= width)
+				if(m + tileWidth <= width + tileListBoost.x)
 				{
 					tileList.push_back(tile(m,i,tileWidth,tileHeight));
 					if(printGeneratedTiles) 
@@ -176,4 +180,25 @@ float generateColorTolerence(Color c1, Color c2)
 
 
   return colorTolerence;
+}
+
+void generateOverlappingImage(const Image& sourceImage,Image& newImage)
+{
+  newImage = GenImageColor(sourceImage.width * 2,sourceImage.height * 2,BLANK);
+
+  Rectangle sourceRec{0,0,(float)sourceImage.width,(float)sourceImage.height};
+
+  Rectangle destRec{0,0,(float)sourceImage.width,(float)sourceImage.height};
+  ImageDraw(&newImage,sourceImage,sourceRec,destRec,WHITE);
+
+  destRec.x = (float)sourceImage.width;
+  ImageDraw(&newImage,sourceImage,sourceRec,destRec,WHITE);
+
+  destRec.x = 0.0f;
+  destRec.y = (float)sourceImage.height;
+  ImageDraw(&newImage,sourceImage,sourceRec,destRec,WHITE);
+
+  destRec.x = (float)sourceImage.width;
+  ImageDraw(&newImage,sourceImage,sourceRec,destRec,WHITE);
+
 }
