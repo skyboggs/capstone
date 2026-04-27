@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include "tileUtils.h"
 #include "tile.h"
-#include "compatabilityVisTools.h"
+#include "visUtils.h"
 
 using namespace std;
 
@@ -17,8 +17,9 @@ int main(int argc, const char** argv)
   Vector2 windowDims{WINDOW_WIDTH,WINDOW_HEIGHT};
 	string imagePath = "../assets/Flowers.png";
 
-	int tileWidth  = 3;
-	int tileHeight = 3;
+	int tileDim  = 3;
+
+  processCommands(imagePath,tileDim,argc,argv);
 
 	InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"visualizing tiles");
 
@@ -26,7 +27,9 @@ int main(int argc, const char** argv)
   { 
 
 // declaring our variables
-  textureMapping genDetails(imagePath,Vector2{(float)tileWidth,(float)tileHeight});
+  textureMapping genDetails(imagePath,tileDim);
+  //genDetails.genOverlappingX = false;
+  //genDetails.genOverlappingY = false;
   visualizerSettings visConfig;
 
 /////////////////////////////////////////////////////
