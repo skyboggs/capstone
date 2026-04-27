@@ -209,7 +209,7 @@ void drawTileCompatabilities
 {
   const vector<Rectangle>& tileSourceRecs = detailMapper.sourceRecs;
   const vector<Rectangle>& tileDestRecs   = detailMapper.destRecs;
-  const Texture2D          currentTexture = detailMapper.texture;
+  const Texture2D          currentTexture = detailMapper.tileAtlas;
   const int&               tileDims       = detailMapper.tileDims;
   const Vector2&           imageDims      = detailMapper.imageDims;
 
@@ -266,7 +266,7 @@ void drawTileCompatabilities
           tileDestRecs[0].y + ((tileWindowDims.y + 1) * tileDestRecs[0].height),
         },
         1.9f,
-        (detailMapper.genOverlappingY ? ((i == (int)(imageDims.x - tileDims + 1)) ? RED : lineColor) : lineColor)
+        lineColor
       );
   	}
   
@@ -286,8 +286,7 @@ void drawTileCompatabilities
           tileDestRecs[0].y + (m * tileDestRecs[0].height)
         },
         1.9f,
-        //lineColor
-        (m == (int)(imageDims.y - tileDims + 1) ? RED : lineColor)
+        lineColor
       );
 
   	}
@@ -614,10 +613,19 @@ void generateTileRecs
 	Vector2 tileDisplayDims{static_cast<float>(windowDims.x)/tileWindowDims.x,static_cast<float>(windowDims.y)/tileWindowDims.y};
 
 // generating source rectangles
-	// generating and putting all the source recs in a list
-	for(int i=0;i<tileHolder.size();++i)
+	// each tile occupies a tileDims x tileDims cell in the atlas, laid out in the same
+	// row-major grid as destRecs so the two vectors are always the same size
+	for(int i=0;i<(int)tileWindowDims.y;++i)
 	{
-		sourceRecs.push_back(tileHolder[i].generateRec());
+		for(int m=0;m<(int)tileWindowDims.x;++m)
+		{
+			sourceRecs.push_back(Rectangle{
+				(float)(m * tileDims),
+				(float)(i * tileDims),
+				(float)tileDims,
+				(float)tileDims
+			});
+		}
 	}
 
 // generating variables for destination rectangles
