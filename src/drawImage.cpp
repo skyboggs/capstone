@@ -81,9 +81,7 @@ int main(int argc, const char** argv)
 
 	// loading the image
 	Image testImage = LoadImage(imagePath.c_str());
-	Image overlappingImage;
-  generateOverlappingImage(testImage,overlappingImage);
-	Texture2D testTexture = LoadTextureFromImage(overlappingImage);
+	Texture2D testTexture = LoadTextureFromImage(testImage);
 	//Texture2D testTexture = LoadTextureFromImage(testImage);
 
 
@@ -146,7 +144,6 @@ int main(int argc, const char** argv)
 	// making sure we unload the images
 	UnloadTexture(testTexture);
 	UnloadImage(testImage);
-	UnloadImage(overlappingImage);
 
 	CloseWindow();
 
