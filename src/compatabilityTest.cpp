@@ -28,11 +28,11 @@ int main(int argc, const char** argv)
 
 // declaring our variables
   textureMapping genDetails(imagePath,tileDim);
-  //genDetails.genMirroredX = true;
-  //genDetails.genMirroredY = true;
-  //genDetails.genOverlappingX = false;
-  //genDetails.genOverlappingY = false;
-  genDetails.genRotatedTiles = true;
+  genDetails.genMirroredX      = false;
+  genDetails.genMirroredY      = false;
+  genDetails.genOverlappingX   = false;
+  genDetails.genOverlappingY   = false;
+  genDetails.genRotatedTiles   = false;
   visualizerSettings visConfig;
 
 /////////////////////////////////////////////////////
@@ -41,6 +41,8 @@ int main(int argc, const char** argv)
 
 // setting genDetails Rectangles
   generateTileRecs(genDetails,windowDims);
+  cout << "genDetails.sourceRecs.size(): " << genDetails.sourceRecs.size() << endl;
+  cout << "genDetails.destRecs.size()  : " << genDetails.destRecs.size()   << endl;
   
 // initializiing our textures and drawing the background
   RenderTexture2D t1         = LoadRenderTexture(genDetails.displayDims.x, genDetails.displayDims.y);

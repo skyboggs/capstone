@@ -333,6 +333,13 @@ void generateTileRecs
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
 	Vector2 tileWindowDims{(imageRes.x-tileDims) + 1, (imageRes.y-tileDims) + 1};
+  /*
+	Vector2 tileWindowDims
+  {
+    detailMapper.image.width / (float)detailMapper.tileDims,
+    detailMapper.image.width / (float)detailMapper.tileDims
+  };
+  */
 
   // calculating how many pixels the current tiles would take up
   Vector2 currentPixelDims{tileWindowDims.x * detailMapper.tileDims,tileWindowDims.y * detailMapper.tileDims};
@@ -542,6 +549,8 @@ void generateTileRecs
               (float)detailMapper.tileDims
             };
 
+            // TODO push source back onto source recs?
+
             Rectangle destRec   = sourceRec;
             destRec.x += currentOffset.x;
             destRec.y += currentOffset.y;
@@ -590,8 +599,14 @@ void generateTileRecs
 
   
 
+  cout << "image width  : " << detailMapper.tileData.width << endl;
+  cout << "image height : " << detailMapper.tileData.height << endl;
 
-	tileWindowDims = Vector2{detailMapper.image.width / (float)detailMapper.tileDims, detailMapper.image.height / (float)detailMapper.tileDims};
+	tileWindowDims = Vector2
+  {
+    detailMapper.tileData.width / (float)detailMapper.tileDims,
+    detailMapper.tileData.height / (float)detailMapper.tileDims
+  };
 
 
 
