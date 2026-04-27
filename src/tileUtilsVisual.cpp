@@ -17,14 +17,14 @@ using namespace std;
 
 Rectangle tileWindowRec{PADDING_WINDOW,PADDING_WINDOW,WINDOW_WIDTH - (2 * PADDING_WINDOW),WINDOW_HEIGHT - (2 * PADDING_WINDOW)};
 
-void generateTileRecs(vector<Rectangle>& sourceRecs,vector<Rectangle>& destRecs,const Texture2D& sourceTexture,const Vector2& tileDims,bool printDebugInfo)
+void generateTileRecs(vector<Rectangle>& sourceRecs,vector<Rectangle>& destRecs,const Texture2D& sourceTexture,Vector2 imageRes,const Vector2& tileDims,bool printDebugInfo)
 {
 	// resolution of the texture that was inputted
-	Vector2 imageRes{(float)sourceTexture.width,(float)sourceTexture.height}; 
+	//Vector2 imageRes{(float)sourceTexture.width,(float)sourceTexture.height}; 
 
 	// holds a vector of the tiles that go over the inputted texture
 	//vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,true,false);
-	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,false,false,false);
+	vector<tile> tileHolder = genTileListBasic(imageRes.x,imageRes.y,tileDims.x,tileDims.y,false,false,false,false);
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
 	Vector2 tileWindowDims{(imageRes.x-tileDims.x) + 1, (imageRes.y-tileDims.y) + 1};
@@ -167,7 +167,10 @@ int main(int argc, const char** argv)
 
 
 	Image testImage = LoadImage(imagePath.c_str());
-	Texture2D testTexture = LoadTextureFromImage(testImage);
+  Image oImage;
+  generateOverlappingImage(testImage,oImage);
+	//Texture2D testTexture = LoadTextureFromImage(testImage);
+	Texture2D testTexture = LoadTextureFromImage(oImage);
 	//Vector2 tileDims{(float)testTexture.width-2,(float)testTexture.height-2};
 	//Vector2 tileDims{(float)7,(float)7};
 	Vector2 tileDims{(float)tileWidth,(float)tileHeight};
@@ -177,14 +180,19 @@ int main(int argc, const char** argv)
 	vector<Rectangle> tileSourceRecs;
 	vector<Rectangle> tileDestRecs;
 
+  Vector2 imageDims{(float)testImage.width,(float)testImage.height};
+
+  imageDims.x += tileDims.x - 1;
+  imageDims.y += tileDims.y - 1;
+
 	// generating source and destination recs
-	generateTileRecs(tileSourceRecs,tileDestRecs,testTexture,tileDims,false);
+	generateTileRecs(tileSourceRecs,tileDestRecs,testTexture,imageDims,tileDims,false);
 
 	bool drawLines = true;
 	bool drawWithGap = true;
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
-	Vector2 tileWindowDims{testTexture.width - tileDims.x, testTexture.height - tileDims.y};
+	Vector2 tileWindowDims{testImage.width -1.0f, testImage.height -1.0f};
 
 	while(!WindowShouldClose())
 	{
@@ -242,6 +250,7 @@ int main(int argc, const char** argv)
 		EndDrawing();
 	}
 	UnloadImage(testImage);
+	UnloadImage(oImage);
 	UnloadTexture(testTexture);
 
 	CloseWindow();

@@ -5,6 +5,7 @@
 #include <vector>
 #include "tile.h"
 #include "raylib.h"
+#include "textureMapping.h"
 
 using std::vector;
 using std::string;
@@ -15,9 +16,9 @@ using std::string;
 //   int tileWidth            - tile width in pixels
 //   int tileHeight           - tile height in pixels
 //   bool mirroredTiles       - mirror the tiles | account for overlap when generating coords
-//   bool mirroredTiles       - mirror the tiles | account for overlap when generating coords
 //   bool printGeneratedTiles - print generated tiles in console
-vector<tile> genTileList(int,int,int,int,bool,bool,bool,bool);
+//   bool testing
+vector<tile> genTileListBasic(int,int,int,int,bool,bool,bool,bool);
 
 // inputs:
 //   string& argv1     - expects --image or other key commands if added

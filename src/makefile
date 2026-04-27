@@ -37,10 +37,10 @@ tile: tile.o
 tile.o: tile.cpp
 	$(cc) -c tile.cpp -I $(header) -I $(raylibHeader) -o $@
 
-tileUtils: tileUtilsTest.cpp tileUtils.o tile.o
+tileUtils: tileUtilsTest.cpp tileUtils.o tile.o textureMapping.o
 	$(cc) tileUtilsTest.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
-tileUtils.o: tileUtils.cpp 
+tileUtils.o: tileUtils.cpp textureMapping.cpp tile.cpp
 	$(cc) -c tileUtils.cpp -I $(header) -I $(raylibHeader) -o $@
 
 tileUtilsVisual: tileUtilsVisual.cpp tileUtils.o tile.o
@@ -49,14 +49,20 @@ tileUtilsVisual: tileUtilsVisual.cpp tileUtils.o tile.o
 drawImage: drawImage.cpp tileUtils.o tile.o
 	$(cc) drawImage.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
-drawTileOptions: drawTileOptions.cpp tileUtils.o tile.o
-	$(cc) drawTileOptions.cpp tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
+drawTileOptions: drawTileOptions.cpp tileUtils.o tile.o textureMapping.o visualizerSettings.o
+	$(cc) drawTileOptions.cpp tileUtils.o tile.o textureMapping.o visualizerSettings.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
-compatabilityVisTools.o: compatabilityVisTools.cpp tileUtils.o tile.o
-	$(cc) compatabilityVisTools.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(graphics)
+visualizerSettings.o: visualizerSettings.cpp
+	$(cc) visualizerSettings.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(graphics)
 
-compatabilityTest: compatabilityTest.cpp compatabilityVisTools.o
-	$(cc) compatabilityTest.cpp compatabilityVisTools.o tileUtils.o tile.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
+textureMapping.o: textureMapping.cpp
+	$(cc) textureMapping.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(graphics)
+
+visUtils.o: visUtils.cpp tileUtils.o tile.o visualizerSettings.o textureMapping.o
+	$(cc) visUtils.cpp -c -o $@ -I $(header) -I $(raylibHeader) $(graphics)
+
+compatabilityTest: compatabilityTest.cpp visUtils.o
+	$(cc) compatabilityTest.cpp visUtils.o tileUtils.o tile.o visualizerSettings.o textureMapping.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 
 clean:

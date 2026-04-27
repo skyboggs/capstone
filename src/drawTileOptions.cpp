@@ -2,6 +2,8 @@
 #include <vector>
 #include "raylib.h"
 #include "tileUtils.h"
+#include "visualizerSettings.h"
+#include "textureMapping.h"
 #include "tile.h"
 
 using namespace std;
@@ -11,27 +13,6 @@ using namespace std;
 #define WINDOW_HEIGHT 800
 
 
-
-struct textureMapping
-{
-  Image image;
-  Texture2D texture;
-
-  vector<Rectangle> sourceRecs;
-  vector<Rectangle> destRecs;
-
-  bool debugMode = false;
-};
-
-struct visualizerSettings
-{
-  bool drawLines   = true;
-  bool drawWithGap = true;
-  bool highlight   = true;
-  int gapSize      = 10;
-
-  Color highlightColor = GREEN;
-};
 
 // checks for user input and updates visualizerSettings if the user activated any shortcut keys
 void updateConfig(visualizerSettings& visConfig)
@@ -59,7 +40,7 @@ void drawTileCompatabilities
 (
   visualizerSettings visConfig,
   textureMapping detailMapping,
-  Vector2 tileDims,
+  int tileDim,
   vector<bool> validOptions
 )
 {
@@ -76,7 +57,7 @@ void drawTileCompatabilities
 
 // setting tileWindowDims
   // holds the dimensions of how many tiles fit in the x and y direction on the screen
-	Vector2 tileWindowDims{currentTexture.width - tileDims.x, currentTexture.height - tileDims.y};
+	Vector2 tileWindowDims{currentTexture.width - (float)tileDim, currentTexture.height - (float)tileDim};
   
 // drawing all of the destination rectangles
   for(int i=0;i<tileSourceRecs.size();++i)
@@ -152,7 +133,7 @@ void drawTileCompatabilities
 void generateTileRecs
 (
  textureMapping& detailMapper,
- const Vector2& tileDims // the size of the tiles we are working with
+ const int& tileDim // the size of the tiles we are working with
 )
 {
 // extracting our variables
@@ -172,10 +153,10 @@ void generateTileRecs
 
 
 	// holds a vector of the tiles that go over the inputted texture
-	vector<tile> tileHolder = genTileList(imageRes.x,imageRes.y,tileDims.x,tileDims.y,mirroredX,mirroredY,printGeneratedTiles,testing);
+	vector<tile> tileHolder = genTileListBasic(imageRes.x,imageRes.y,(float)tileDim,(float)tileDim,mirroredX,mirroredY,printGeneratedTiles,testing);
 
 	// holds the dimensions of how many tiles fit in the x and y direction on the screen
-	Vector2 tileWindowDims{(imageRes.x-tileDims.x) + 1, (imageRes.y-tileDims.y) + 1};
+	Vector2 tileWindowDims{(imageRes.x-tileDim) + 1, (imageRes.y-tileDim) + 1};
 
 	// holds the dimensions of the tile windows that are drawn to screen
 	Vector2 tileDisplayDims{static_cast<float>(WINDOW_WIDTH)/tileWindowDims.x,static_cast<float>(WINDOW_HEIGHT)/tileWindowDims.y};
@@ -189,18 +170,18 @@ void generateTileRecs
 
 // generating variables for destination rectangles
 	// how much the individual tiles need to be scaled up to fit in their displays
-	Vector2 tileScale{tileDisplayDims.x/tileDims.x,tileDisplayDims.y/tileDims.y};
+	Vector2 tileScale{tileDisplayDims.x/(float)tileDim,tileDisplayDims.y/(float)tileDim};
 
 	if(tileScale.x < tileScale.y) { tileScale.y = tileScale.x; }
 	if(tileScale.y < tileScale.x) { tileScale.x = tileScale.y; }
 
-  Vector2 displayDimensions{tileScale.x * tileDims.x,tileScale.y * tileDims.y};
+  Vector2 displayDimensions{tileScale.x * (float)tileDim,tileScale.y * (float)tileDim};
 
 
 	Vector2 scaledTileSize
   {
-    (float)static_cast<int>(tileDims.x * tileScale.x),
-    (float)static_cast<int>(tileDims.y * tileScale.y)
+    (float)static_cast<int>(tileDim * tileScale.x),
+    (float)static_cast<int>(tileDim * tileScale.y)
   };
 
 // printing debug info
@@ -243,8 +224,9 @@ int main(int argc, const char** argv)
 	string imagePath = "../assets/Flowers.png";
 
 	vector<string> commandStack;
-	int tileWidth  = 3;
-	int tileHeight = 3;
+
+// selecting how big a tile is in our case
+	int tileDim(3);
 
 // pushing inputting arguments to the command stack
 	for(int i=1;i<argc;++i)
@@ -283,15 +265,8 @@ int main(int argc, const char** argv)
 					try
 					{
 						int newWidth  = stoi(commandStack[i + 1]);
-						int newHeight = newWidth;
 
-						if(remainingArgs >= 2)
-						{
-							newHeight = stoi(commandStack[i + 2]);
-						}
-
-						tileWidth = newWidth;
-						tileHeight = newHeight;
+            tileDim = newWidth;
 					}catch(const invalid_argument& e)
 					{
 						cout << "\033[31mNot a valid\033[0m CLI number for the --tile command!" << endl;
@@ -309,20 +284,15 @@ int main(int argc, const char** argv)
 
 // declaring our variables
   float currentAngle(0.0f);
-  textureMapping generationDetails;
+  textureMapping generationDetails(imagePath,tileDim);
   visualizerSettings visConfig;
 
 /////////////////////////////////////////////////////
 ////// setting our variables and parameters /////////
 /////////////////////////////////////////////////////
 
-// selecting how big a tile is in our case
-	Vector2 tileDims{(float)tileWidth,(float)tileHeight};
-	//Vector2 tileDims{(float)testTexture.width-2,(float)testTexture.height-2};
-	//Vector2 tileDims{(float)7,(float)7};
-	//Vector2 tileDims{(float)1,(float)1};
 
-	//cout << "Tile size: " << tileDims.x << " x " << tileDims.y << endl;
+	//cout << "Tile size: " << tileDim << endl;
 
 // setting generationDetails variables
   generationDetails.image     = LoadImage(imagePath.c_str());
@@ -330,7 +300,7 @@ int main(int argc, const char** argv)
   generationDetails.debugMode = false;
 
 // setting generationDetails Rectangles
-  generateTileRecs(generationDetails,tileDims);
+  generateTileRecs(generationDetails,tileDim);
   
   vector<Rectangle>& tileSourceRecs = generationDetails.sourceRecs;
   vector<Rectangle>& tileDestRecs   = generationDetails.destRecs;
@@ -388,7 +358,7 @@ int main(int argc, const char** argv)
 // updating the compatability texture
     BeginTextureMode(t1);
       ClearBackground(BLANK);
-      drawTileCompatabilities(visConfig,generationDetails,tileDims,compatibleList);
+      drawTileCompatabilities(visConfig,generationDetails,tileDim,compatibleList);
     EndTextureMode();
 
   // starting to draw
