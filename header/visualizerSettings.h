@@ -14,9 +14,7 @@ struct visualizerSettings
 {
   visualizerSettings();
   bool drawLines;
-  bool drawWithGap;
   bool highlight;
-  int gapSize;
 
   Color highlightColor;
 };

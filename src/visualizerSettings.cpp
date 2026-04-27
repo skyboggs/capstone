@@ -11,9 +11,7 @@ using namespace std;
 visualizerSettings::visualizerSettings()
   :
     drawLines(true),
-    drawWithGap(true),
     highlight(true),
-    gapSize(10),
     highlightColor(WHITE)
 {
 };

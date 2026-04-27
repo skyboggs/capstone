@@ -184,9 +184,6 @@ void updateConfig(visualizerSettings& visConfig)
   // toggling drawing the lines for the grid
   if(IsKeyPressed(KEY_L)) { visConfig.drawLines = !visConfig.drawLines; }
   
-  // toggling adding a visual gap between tiles
-  if(IsKeyPressed(KEY_G)) { visConfig.drawWithGap = !visConfig.drawWithGap; }
-  
   // toggling adding a highlight around valid cell options
   if(IsKeyPressed(KEY_H)) { visConfig.highlight = !visConfig.highlight; }
 }
@@ -215,8 +212,6 @@ void drawTileCompatabilities
 
 // extracting our settings
   bool&  drawLines      = visConfig.drawLines;
-  bool&  drawWithGap    = visConfig.drawWithGap;
-  int&   gapSize        = visConfig.gapSize;
   bool&  highlight      = visConfig.highlight;
   Color& highlightColor = visConfig.highlightColor;
 
@@ -229,18 +224,6 @@ void drawTileCompatabilities
   {
   	Rectangle currentRectangle = tileDestRecs[i];
   
-  	// shrinking the size of the tile with the center being the origin point
-  	if(drawWithGap)
-  	{
-  		currentRectangle.x      += gapSize/2;
-  		currentRectangle.y      += gapSize/2;
-
-  		currentRectangle.width  -= gapSize;
-  		currentRectangle.height -= gapSize;
-
-      DrawRectangleRec(tileDestRecs[i],BLACK);
-  	}
-  
   	DrawTexturePro(currentTexture,tileSourceRecs[i],currentRectangle,Vector2{0.0f,0.0f},0.0f,(highlight && validOptions[i]) ? highlightColor : Color{150,150,150,255});
   }
   
@@ -249,7 +232,7 @@ void drawTileCompatabilities
   {
     //printVec(tileWindowDims,"tileWindowDims");
     //printVec(imageDims,"imageDims");
-  	Color lineColor = (drawWithGap ? WHITE : BLACK);
+  	Color lineColor = WHITE;
   
   // drawing a vertical line to show where the tiles are
   	for(int i=1;i<=detailMapper.tileCount.x;++i)
