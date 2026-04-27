@@ -252,7 +252,7 @@ void drawTileCompatabilities
   	Color lineColor = (drawWithGap ? WHITE : BLACK);
   
   // drawing a vertical line to show where the tiles are
-  	for(int i=1;i<=tileWindowDims.x;++i)
+  	for(int i=1;i<=detailMapper.tileCount.x;++i)
   	{
   		DrawLineEx
       (
@@ -263,7 +263,7 @@ void drawTileCompatabilities
         },
         { 
           tileDestRecs[0].x + (i * tileDestRecs[0].width),
-          tileDestRecs[0].y + ((tileWindowDims.y + 1) * tileDestRecs[0].height),
+          tileDestRecs[0].y + (detailMapper.tileCount.y * tileDestRecs[0].height),
         },
         1.9f,
         lineColor
@@ -271,7 +271,7 @@ void drawTileCompatabilities
   	}
   
   // drawing a horizontal line to show where the tiles are
-  	for(int m=1;m<=tileWindowDims.y;++m)
+  	for(int m=1;m<=detailMapper.tileCount.y;++m)
   	{
       DrawLineEx
       (
@@ -282,7 +282,7 @@ void drawTileCompatabilities
         },
         Vector2
         {
-          tileDestRecs[0].x + ((float)(tileWindowDims.x + (float)1) * tileDestRecs[0].width),
+          tileDestRecs[0].x + (detailMapper.tileCount.x * tileDestRecs[0].width),
           tileDestRecs[0].y + (m * tileDestRecs[0].height)
         },
         1.9f,
@@ -668,6 +668,12 @@ void generateTileRecs
       );
 		}
 	}
+
+  detailMapper.tileCount = Vector2
+  {
+    detailMapper.tileData.width / (float)detailMapper.tileDims,
+    detailMapper.tileData.height / (float)detailMapper.tileDims
+  };
 }
 
 
