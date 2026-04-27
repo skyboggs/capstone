@@ -16,13 +16,15 @@ using std::flush;
 // int tileSize in a square shape
 // bool mirror the tiles in the x or y axis | account for overlap when generating coords
 // bool print generated tiles in console
-vector<tile> genTileList(int width,int height,int tileWidth, int tileHeight,bool mirroredX,bool mirroredY, bool printGeneratedTiles, bool testing)
+vector<tile> genTileListBasic(int width,int height,int tileWidth, int tileHeight,bool overlappingX,bool overlappingY, bool printGeneratedTiles, bool testing)
 {
+
 	vector<tile> tileList;
   Vector2 tileListBoost{0.0f,0.0f};
 
-  if(mirroredX) { tileListBoost.x = (float)(tileWidth  - 1); }
-  if(mirroredY) { tileListBoost.y = (float)(tileHeight - 1); }
+  if(overlappingX) { tileListBoost.x = (float)(tileWidth  - 1); }
+  if(overlappingY) { tileListBoost.y = (float)(tileHeight - 1); }
+
 
 	// this generates x's for the source squares, for example:
 	// a 3 x 3 cube with a tile size of 3 x 1 will look like:
@@ -200,5 +202,4 @@ void generateOverlappingImage(const Image& sourceImage,Image& newImage)
 
   destRec.x = (float)sourceImage.width;
   ImageDraw(&newImage,sourceImage,sourceRec,destRec,WHITE);
-
 }
