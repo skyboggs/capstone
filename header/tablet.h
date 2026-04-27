@@ -36,6 +36,9 @@ struct tablet
   //   Vector2 loc    - cell location in tabletPixelx
   //   Vector2 texLoc - tile location 
   void updateCell(Vector2 loc,Vector2 texLoc);
+
+  // used in case I want to have multiple tablets being ran at once generating an image
+  void step();
 };
 
 
