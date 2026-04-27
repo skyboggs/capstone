@@ -339,20 +339,6 @@ void generateTileRecs
 
   Vector2 atlasDims = currentPixelDims;
 
-  //int scaleAmount(1);
-  Vector2 scaleAmount{1.0f,1.0f};
-
-  if(detailMapper.genRotatedTiles) 
-  { 
-    scaleAmount.x *= 2; 
-    scaleAmount.y *= 2; 
-  }
-
-  if(detailMapper.genMirroredX   ) { scaleAmount.x *= 2; }
-  if(detailMapper.genMirroredY   ) { scaleAmount.y *= 2; }
-
-  atlasDims.x *= (float)scaleAmount.x;
-  atlasDims.y *= (float)scaleAmount.y;
 
 
 
@@ -360,6 +346,7 @@ void generateTileRecs
   RenderTexture2D textureAtlasGPU = LoadRenderTexture(atlasDims.x,atlasDims.y);
 
   vector<tile> newTileHolder;
+  Vector2 scaleAmount{1.0f,1.0f};
 
   BeginTextureMode(textureAtlasGPU);
   ClearBackground(BLANK);
@@ -389,6 +376,129 @@ void generateTileRecs
   detailMapper.tileData = LoadImageFromTexture(textureAtlasGPU.texture);
   ImageFlipVertical(&detailMapper.tileData);
   detailMapper.tileAtlas = LoadTextureFromImage(detailMapper.tileData);
+  UnloadRenderTexture(textureAtlasGPU);
+
+
+
+  scaleAmount.x = 1.0f;
+  scaleAmount.y = 1.0f;
+  if(detailMapper.genMirroredX   ) 
+  { 
+    Rectangle currentImageDims{0,0,(float)detailMapper.tileData.width,(float)detailMapper.tileData.height};
+
+    scaleAmount.x *= 2; 
+    atlasDims.x *= (float)scaleAmount.x;
+
+    textureAtlasGPU = LoadRenderTexture(atlasDims.x,atlasDims.y);
+
+    BeginTextureMode(textureAtlasGPU);
+    Rectangle destRec = currentImageDims;
+
+
+    // drawing what we already have to the canvas
+    DrawTexturePro
+    (
+      detailMapper.tileAtlas,
+      currentImageDims,
+      destRec,
+      Vector2{0.0f,0.0f},
+      0.0f,
+      WHITE
+    );
+
+    destRec.x += destRec.width;
+    currentImageDims.width *= -1;
+
+    // drawing the new portion to the canvas
+    DrawTexturePro
+    (
+      detailMapper.tileAtlas,
+      currentImageDims,
+      destRec,
+      Vector2{0.0f,0.0f},
+      0.0f,
+      WHITE
+    );
+
+    EndTextureMode();
+
+    detailMapper.tileData = LoadImageFromTexture(textureAtlasGPU.texture);
+    ImageFlipVertical(&detailMapper.tileData);
+    detailMapper.tileAtlas = LoadTextureFromImage(detailMapper.tileData);
+    UnloadRenderTexture(textureAtlasGPU);
+  }
+
+
+
+  scaleAmount.x = 1.0f;
+  scaleAmount.y = 1.0f;
+  if(detailMapper.genMirroredY   ) 
+  { 
+    Rectangle currentImageDims{0,0,(float)detailMapper.tileData.width,(float)detailMapper.tileData.height};
+
+    scaleAmount.y *= 2; 
+    atlasDims.y *= (float)scaleAmount.y;
+
+    textureAtlasGPU = LoadRenderTexture(atlasDims.x,atlasDims.y);
+
+    BeginTextureMode(textureAtlasGPU);
+    Rectangle destRec = currentImageDims;
+
+
+    // drawing what we already have to the canvas
+    DrawTexturePro
+    (
+      detailMapper.tileAtlas,
+      currentImageDims,
+      destRec,
+      Vector2{0.0f,0.0f},
+      0.0f,
+      WHITE
+    );
+
+    destRec.y += destRec.height;
+    currentImageDims.height *= -1.0f;
+
+    // drawing the new portion to the canvas
+    DrawTexturePro
+    (
+      detailMapper.tileAtlas,
+      currentImageDims,
+      destRec,
+      Vector2{0.0f,0.0f},
+      0.0f,
+      WHITE
+    );
+
+    EndTextureMode();
+
+    detailMapper.tileData = LoadImageFromTexture(textureAtlasGPU.texture);
+    ImageFlipVertical(&detailMapper.tileData);
+    detailMapper.tileAtlas = LoadTextureFromImage(detailMapper.tileData);
+    UnloadRenderTexture(textureAtlasGPU);
+  }
+
+  /*
+
+  scaleAmount.x = 1.0f;
+  scaleAmount.y = 1.0f;
+  if(detailMapper.genRotatedTiles) 
+  { 
+    scaleAmount.x *= 2; 
+    scaleAmount.y *= 2; 
+
+    atlasDims.x *= (float)scaleAmount.x;
+    atlasDims.y *= (float)scaleAmount.y;
+
+
+  //TODO draw the current image rotated tiles
+
+  }
+  */
+
+
+
+
 
   if(ExportImage(detailMapper.tileData,"../atlasDump/atlasTest.png"))
   {

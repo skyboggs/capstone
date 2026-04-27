@@ -28,6 +28,8 @@ int main(int argc, const char** argv)
 
 // declaring our variables
   textureMapping genDetails(imagePath,tileDim);
+  genDetails.genMirroredX = true;
+  genDetails.genMirroredY = true;
   //genDetails.genOverlappingX = false;
   //genDetails.genOverlappingY = false;
   visualizerSettings visConfig;
