@@ -478,23 +478,101 @@ void generateTileRecs
     UnloadRenderTexture(textureAtlasGPU);
   }
 
-  /*
 
   scaleAmount.x = 1.0f;
   scaleAmount.y = 1.0f;
   if(detailMapper.genRotatedTiles) 
   { 
+    Rectangle currentImageDims{0,0,(float)detailMapper.tileData.width,(float)detailMapper.tileData.height};
+
     scaleAmount.x *= 2; 
     scaleAmount.y *= 2; 
 
     atlasDims.x *= (float)scaleAmount.x;
     atlasDims.y *= (float)scaleAmount.y;
 
+    textureAtlasGPU = LoadRenderTexture(atlasDims.x,atlasDims.y);
 
-  //TODO draw the current image rotated tiles
+    BeginTextureMode(textureAtlasGPU);
+    Rectangle destRec = currentImageDims;
 
+
+    // drawing what we already have to the canvas
+    DrawTexturePro
+    (
+      detailMapper.tileAtlas,
+      currentImageDims,
+      destRec,
+      Vector2{0.0f,0.0f},
+      0.0f,
+      WHITE
+    );
+
+	  vector<tile> newTileList = genTileList(detailMapper,false,false);
+
+    for(int y=0;y<2;++y)
+    {
+      for(int x=0;x<2;++x)
+      {
+        // skipping the top left spot since that once already is already done
+        if(y == 0 && x == 0) { continue; }
+
+        Vector2 tileCount
+        {
+          currentImageDims.width / (float)detailMapper.tileDims, 
+          currentImageDims.height / (float)detailMapper.tileDims
+        };
+
+        // the offset of the current tile in pixels
+        Vector2 currentOffset
+        {
+          (x == 0) ? 0 : currentImageDims.width, 
+          (y == 0) ? 0 : currentImageDims.height
+        };
+
+        for(int i=0;i<tileCount.y;++i)
+        {
+          for(int m=0;m<tileCount.x;++m)
+          {
+            Rectangle sourceRec = Rectangle
+            {
+              (float)(m * detailMapper.tileDims),
+              (float)(i * detailMapper.tileDims),
+              (float)detailMapper.tileDims,
+              (float)detailMapper.tileDims
+            };
+
+            Rectangle destRec   = sourceRec;
+            destRec.x += currentOffset.x;
+            destRec.y += currentOffset.y;
+            tileHolder.push_back(tile((int)destRec.x,(int)destRec.y,(int)detailMapper.tileDims,(int)detailMapper.tileDims));
+
+            destRec.x += (float)detailMapper.tileDims / 2.0f;
+            destRec.y += (float)detailMapper.tileDims / 2.0f;
+
+            // drawing the new portion to the canvas
+            DrawTexturePro
+            (
+              detailMapper.tileAtlas,
+              sourceRec,
+              destRec,
+              Vector2{(float)detailMapper.tileDims / 2.0f,(float)detailMapper.tileDims / 2.0f},
+              (m == 0 ? 90.0f : 0.0f) + (i == 0 ? 180.0f : 0.0f),
+              WHITE
+            );
+          }
+        }
+      }
+    }
+
+
+    EndTextureMode();
+
+    detailMapper.tileData = LoadImageFromTexture(textureAtlasGPU.texture);
+    ImageFlipVertical(&detailMapper.tileData);
+    detailMapper.tileAtlas = LoadTextureFromImage(detailMapper.tileData);
+    UnloadRenderTexture(textureAtlasGPU);
   }
-  */
 
 
 
@@ -513,6 +591,7 @@ void generateTileRecs
   
 
 
+	tileWindowDims = Vector2{detailMapper.image.width / (float)detailMapper.tileDims, detailMapper.image.height / (float)detailMapper.tileDims};
 
 
 
