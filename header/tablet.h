@@ -19,9 +19,6 @@ struct tablet
   Vector2 pixelDims;  // the size in pixels of the actual pixel being drawn to screen
   vector<vector<cell>> tabletPixels;
 
-  // shuffled at construction — G pops from back, skipping already-selected cells
-  vector<Vector2> generationQueue;
-
   RenderTexture2D tabletScreen;
 
 
@@ -42,16 +39,18 @@ struct tablet
   // the cell's tile origin) now has newColor, then redraws that cell to tabletScreen
   void updateCell(Vector2 loc, Vector2 pixelOffset, Color newColor, const textureMapping& texMap);
 
-  // pops from generationQueue until it finds an unselected cell, then picks its tile;
-  // does nothing if the queue is empty or all remaining cells are already selected
-  void generateCell(const textureMapping& texMap);
+  // collapses the cell at coord and propagates constraints to neighbors via BFS
+  void generateCell(Vector2 coord, const textureMapping& texMap);
 
-  // clears isSelected on all cells, re-inits their tile options, updates rough colors,
-  // then refills and reshuffles generationQueue
+  // clears isSelected on all cells and re-inits their tile options and rough colors
   void reset(const textureMapping& texMap);
 
-  // used in case I want to have multiple tablets being ran at once generating an image
-  void step(const textureMapping& texMap);
+  // finds the unselected cell with the fewest valid tiles (lowest entropy),
+  // collapses it, and propagates; returns false when all cells are selected
+  bool step(const textureMapping& texMap);
+
+  // collapses the cell at the given screen coordinate and propagates constraints
+  bool step(Vector2 coord, const textureMapping& texMap);
 
 };
 

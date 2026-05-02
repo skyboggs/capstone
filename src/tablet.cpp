@@ -15,22 +15,6 @@ tablet::tablet(Vector2 tabletDimensions, Vector2 screenDimension)
     tabletPixels((int)tabletDimensions.y, vector<cell>((int)tabletDimensions.x)),
     tabletScreen(LoadRenderTexture((int)screenDimension.x, (int)screenDimension.y))
 {
-  for(int row = 0; row < (int)tabletDimensions.y; ++row)
-  {
-    for(int col = 0; col < (int)tabletDimensions.x; ++col)
-    {
-      generationQueue.push_back(Vector2{(float)col, (float)row});
-    }
-  }
-
-  // Fisher-Yates shuffle
-  for(int i = (int)generationQueue.size() - 1; i > 0; --i)
-  {
-    int j = rand() % (i + 1);
-    Vector2 tmp         = generationQueue[i];
-    generationQueue[i]  = generationQueue[j];
-    generationQueue[j]  = tmp;
-  }
 }
 
 void tablet::updateTexture()
@@ -76,63 +60,54 @@ void tablet::updateCell(Vector2 loc, Vector2 pixelOffset, Color newColor, const 
   EndTextureMode();
 }
 
-void tablet::generateCell(const textureMapping& texMap)
+void tablet::generateCell(Vector2 coord, const textureMapping& texMap)
 {
-  while(!generationQueue.empty())
+  cell& c = tabletPixels[(int)coord.y][(int)coord.x];
+  if(c.isSelected) { return; }
+
+  c.pickTile(texMap);
+
+  const int tileDims     = texMap.tileDims;
+  const int centerOffset = (tileDims - 1) / 2;
+
+  vector<vector<bool>> inQueue((int)tabletDims.y,
+                               vector<bool>((int)tabletDims.x, false));
+  queue<Vector2> propQueue;
+  propQueue.push(coord);
+  inQueue[(int)coord.y][(int)coord.x] = true;
+
+  while(!propQueue.empty())
   {
-    Vector2 pos = generationQueue.back();
-    generationQueue.pop_back();
-    cell& c = tabletPixels[(int)pos.y][(int)pos.x];
-    if(!c.isSelected)
+    Vector2 cur = propQueue.front();
+    propQueue.pop();
+    inQueue[(int)cur.y][(int)cur.x] = false;
+
+    cell& curCell = tabletPixels[(int)cur.y][(int)cur.x];
+    if(curCell.validIndexes.empty()) { continue; }
+
+    for(int dy = -centerOffset; dy <= centerOffset; ++dy)
     {
-      c.pickTile(texMap);
-
-      const int tileDims     = texMap.tileDims;
-      const int centerOffset = (tileDims - 1) / 2;
-
-      // inQueue[row][col] prevents a cell being enqueued twice in one propagation wave
-      vector<vector<bool>> inQueue((int)tabletDims.y,
-                                   vector<bool>((int)tabletDims.x, false));
-      queue<Vector2> propQueue;
-      propQueue.push(pos);
-      inQueue[(int)pos.y][(int)pos.x] = true;
-
-      while(!propQueue.empty())
+      for(int dx = -centerOffset; dx <= centerOffset; ++dx)
       {
-        Vector2 cur = propQueue.front();
-        propQueue.pop();
-        inQueue[(int)cur.y][(int)cur.x] = false;
+        if(dx == 0 && dy == 0) { continue; }
+        int nx = (int)cur.x + dx;
+        int ny = (int)cur.y + dy;
+        if(nx < 0 || nx >= (int)tabletDims.x) { continue; }
+        if(ny < 0 || ny >= (int)tabletDims.y) { continue; }
 
-        cell& curCell = tabletPixels[(int)cur.y][(int)cur.x];
-        if(curCell.validIndexes.empty()) { continue; }
+        cell& neighbor = tabletPixels[ny][nx];
+        if(neighbor.isSelected) { continue; }
 
-        for(int dy = -centerOffset; dy <= centerOffset; ++dy)
+        if(neighbor.updateTilesCompatibleWith(curCell, dx, dy, texMap))
         {
-          for(int dx = -centerOffset; dx <= centerOffset; ++dx)
+          neighbor.updateRoughColor(texMap);
+          if(!inQueue[ny][nx])
           {
-            if(dx == 0 && dy == 0) { continue; }
-            int nx = (int)cur.x + dx;
-            int ny = (int)cur.y + dy;
-            if(nx < 0 || nx >= (int)tabletDims.x) { continue; }
-            if(ny < 0 || ny >= (int)tabletDims.y) { continue; }
-
-            cell& neighbor = tabletPixels[ny][nx];
-            if(neighbor.isSelected) { continue; }
-
-            if(neighbor.updateTilesCompatibleWith(curCell, dx, dy, texMap))
-            {
-              neighbor.updateRoughColor(texMap);
-              if(!inQueue[ny][nx])
-              {
-                inQueue[ny][nx] = true;
-                propQueue.push({(float)nx, (float)ny});
-              }
-            }
+            inQueue[ny][nx] = true;
+            propQueue.push({(float)nx, (float)ny});
           }
         }
       }
-
-      return;
     }
   }
 }
@@ -149,22 +124,37 @@ void tablet::reset(const textureMapping& texMap)
       c.updateRoughColor(texMap);
     }
   }
-
-  generationQueue.clear();
-  for(int row = 0; row < (int)tabletDims.y; ++row)
-    for(int col = 0; col < (int)tabletDims.x; ++col)
-      generationQueue.push_back(Vector2{(float)col, (float)row});
-
-  for(int i = (int)generationQueue.size() - 1; i > 0; --i)
-  {
-    int j              = rand() % (i + 1);
-    Vector2 tmp        = generationQueue[i];
-    generationQueue[i] = generationQueue[j];
-    generationQueue[j] = tmp;
-  }
 }
 
-void tablet::step(const textureMapping& texMap)
+bool tablet::step(const textureMapping& texMap)
 {
-  cout << "\033[31m!! TODO : void tablet::step() !!\033[0m" << endl;
+  int bestRow = -1, bestCol = -1, bestCount = -1;
+
+  for(int row = 0; row < (int)tabletDims.y; ++row)
+  {
+    for(int col = 0; col < (int)tabletDims.x; ++col)
+    {
+      cell& c = tabletPixels[row][col];
+      if(!c.isSelected && !c.validIndexes.empty())
+      {
+        int count = (int)c.validIndexes.size();
+        if(bestRow == -1 || count < bestCount)
+        {
+          bestCount = count;
+          bestRow   = row;
+          bestCol   = col;
+        }
+      }
+    }
+  }
+
+  if(bestRow == -1) { return false; }
+  generateCell({(float)bestCol, (float)bestRow}, texMap);
+  return true;
+}
+
+bool tablet::step(Vector2 coord, const textureMapping& texMap)
+{
+  generateCell(coord, texMap);
+  return true;
 }
