@@ -17,7 +17,7 @@ else ifeq ($(PLATFORM), WSL)
     cc           = g++
 endif
 
-current: compatabilityTest
+current: tabletTest
 
 all: demoApp tile tileUtils tileUtilsVisual drawImage cell drawTileOptions compatabilityTest
 
@@ -63,6 +63,12 @@ visUtils.o: visUtils.cpp tileUtils.o tile.o visualizerSettings.o textureMapping.
 
 compatabilityTest: compatabilityTest.cpp visUtils.o
 	$(cc) compatabilityTest.cpp visUtils.o tileUtils.o tile.o visualizerSettings.o textureMapping.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
+
+tablet.o: tablet.cpp
+	$(cc) tablet.cpp -c -o $@ -I $(header) -I $(raylibHeader)
+
+tabletTest: tabletTest.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o
+	$(cc) tabletTest.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 
 clean:

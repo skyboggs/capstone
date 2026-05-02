@@ -7,6 +7,8 @@
 
 using std::vector;
 
+struct textureMapping;
+
 struct cell
 {
 	///////////////
@@ -20,10 +22,15 @@ struct cell
 	Color selectedColor;
 
 	tile selectedTile;
-	vector<tile> possibleTiles;
 
-	// this will get you a rough color of what 
-	// could be at the current cell or it will 
+	// indexed 1:1 with textureMapping::sourceRecs — true means still valid
+	vector<bool> possibleTiles;
+	// compact list of indexes where possibleTiles[i] is still true;
+	// iterate this instead of the full possibleTiles to skip eliminated options
+	vector<int> validIndexes;
+
+	// this will get you a rough color of what
+	// could be at the current cell or it will
 	// grab the current selected color of the cell
 	Color roughColor;
 
@@ -42,12 +49,20 @@ struct cell
 	// MEMBER FUNCTIONS //
 	//////////////////////
 	
-	// adds a way to grab the cell color even if the cell is not currently selected
-	// if generateRoughColor is false, then we will just return BLACK
-	Color getCellColor(); 
-	void pickTile();
-	bool updateTiles(Vector2,Color);
-	void updateRoughColor();
+	// call once after construction to size possibleTiles and fill validIndexes
+	void init(const textureMapping& texMap);
+
+	// returns selectedColor if selected, roughColor otherwise (BLACK if generateRoughColor is false)
+	Color getCellColor();
+	void pickTile(const textureMapping& texMap);
+	bool updateTiles(Vector2 offset, Color newColor, const textureMapping& texMap);
+
+	// Eliminates any tile from this cell that has no compatible match among
+	// source's current valid tiles, given source is at grid offset (dx, dy) from this cell.
+	// Compatible means the two tiles agree pixel-for-pixel on their shared overlap region.
+	// Returns true if any tiles were eliminated.
+	bool updateTilesCompatibleWith(const cell& source, int dx, int dy, const textureMapping& texMap);
+	void updateRoughColor(const textureMapping& texMap);
 	// take position of the updated cell ( we only really care about the pixel color at this location )
 	// take the current position of this cell and check the pixels that was updated
 	// have it so the inputted coordinate is relative to the current cell and we are also inputting the new color
