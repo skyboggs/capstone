@@ -34,11 +34,13 @@ struct textureMapping
 
   vector<Rectangle> sourceRecs;
   vector<Rectangle> destRecs;
+  vector<vector<Color>> tilePixels;
 
-  
+
   textureMapping(string imagePath,int tileSize);
   ~textureMapping();
   void setNewTileSize(int);
+  void buildTileCache();
 };
 
 

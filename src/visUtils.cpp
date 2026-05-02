@@ -657,6 +657,8 @@ void generateTileRecs
     detailMapper.tileData.width / (float)detailMapper.tileDims,
     detailMapper.tileData.height / (float)detailMapper.tileDims
   };
+
+  detailMapper.buildTileCache();
 }
 
 

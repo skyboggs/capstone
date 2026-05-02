@@ -62,6 +62,23 @@ void textureMapping::setNewTileSize(int newTileSize)
   tileDims = newTileSize;
 };
 
+void textureMapping::buildTileCache()
+{
+  tilePixels.resize(sourceRecs.size());
+  for(int i = 0; i < (int)sourceRecs.size(); ++i)
+  {
+    const Rectangle& rec = sourceRecs[i];
+    tilePixels[i].resize(tileDims * tileDims);
+    for(int ly = 0; ly < tileDims; ++ly)
+    {
+      for(int lx = 0; lx < tileDims; ++lx)
+      {
+        tilePixels[i][ly * tileDims + lx] = GetImageColor(tileData, (int)rec.x + lx, (int)rec.y + ly);
+      }
+    }
+  }
+}
+
 
 
 

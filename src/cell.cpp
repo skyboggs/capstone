@@ -61,10 +61,7 @@ void cell::pickTile(const textureMapping& texMap)
   int pickedIdx    = validIndexes[rand() % validIndexes.size()];
   int centerOffset = (texMap.tileDims - 1) / 2;
 
-  const Rectangle& srcRec = texMap.sourceRecs[pickedIdx];
-  selectedColor = GetImageColor(texMap.tileData,
-                                (int)srcRec.x + centerOffset,
-                                (int)srcRec.y + centerOffset);
+  selectedColor = texMap.tilePixels[pickedIdx][centerOffset * texMap.tileDims + centerOffset];
   isSelected = true;
 
   // collapse: only the picked tile remains valid
@@ -80,10 +77,7 @@ bool cell::updateTiles(Vector2 offset, Color newColor, const textureMapping& tex
   for(int i = (int)validIndexes.size() - 1; i >= 0; --i)
   {
     int idx = validIndexes[i];
-    const Rectangle& srcRec = texMap.sourceRecs[idx];
-    int px = (int)srcRec.x + (int)offset.x;
-    int py = (int)srcRec.y + (int)offset.y;
-    Color tileColor = GetImageColor(texMap.tileData, px, py);
+    const Color& tileColor = texMap.tilePixels[idx][(int)offset.y * texMap.tileDims + (int)offset.x];
 
     float dr = (float)std::abs((int)newColor.r - (int)tileColor.r) / 255.0f;
     float dg = (float)std::abs((int)newColor.g - (int)tileColor.g) / 255.0f;
@@ -115,25 +109,20 @@ bool cell::updateTilesCompatibleWith(const cell& source, int dx, int dy, const t
   for(int i = (int)validIndexes.size() - 1; i >= 0; --i)
   {
     int myIdx = validIndexes[i];
-    const Rectangle& myRec = texMap.sourceRecs[myIdx];
 
     // keep this tile if ANY source tile is pixel-perfect compatible with it
     bool hasCompatible = false;
     for(int j = 0; j < (int)source.validIndexes.size() && !hasCompatible; ++j)
     {
-      const Rectangle& srcRec = texMap.sourceRecs[source.validIndexes[j]];
+      int srcIdx = source.validIndexes[j];
 
       bool match = true;
       for(int oy = oy_lo; oy <= oy_hi && match; ++oy)
       {
         for(int ox = ox_lo; ox <= ox_hi && match; ++ox)
         {
-          Color srcColor = GetImageColor(texMap.tileData,
-                                         (int)srcRec.x + ox,
-                                         (int)srcRec.y + oy);
-          Color myColor  = GetImageColor(texMap.tileData,
-                                         (int)myRec.x  + (ox - dx),
-                                         (int)myRec.y  + (oy - dy));
+          const Color& srcColor = texMap.tilePixels[srcIdx][oy * tileDims + ox];
+          const Color& myColor  = texMap.tilePixels[myIdx][(oy - dy) * tileDims + (ox - dx)];
           if(srcColor.r != myColor.r ||
              srcColor.g != myColor.g ||
              srcColor.b != myColor.b) { match = false; }
@@ -164,8 +153,7 @@ void cell::updateRoughColor(const textureMapping& texMap)
   for(int i = 0; i < (int)validIndexes.size(); ++i)
   {
     int idx = validIndexes[i];
-    const Rectangle& srcRec = texMap.sourceRecs[idx];
-    Color c = GetImageColor(texMap.tileData, (int)srcRec.x + centerOffset, (int)srcRec.y + centerOffset);
+    const Color& c = texMap.tilePixels[idx][centerOffset * texMap.tileDims + centerOffset];
     colorTotals.x += c.r;
     colorTotals.y += c.g;
     colorTotals.z += c.b;
