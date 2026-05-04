@@ -100,7 +100,6 @@ void tablet::generateCell(Vector2 coord, const textureMapping& texMap)
 
         if(neighbor.updateTilesCompatibleWith(curCell, dx, dy, texMap))
         {
-          neighbor.updateRoughColor(texMap);
           if(!inQueue[ny][nx])
           {
             inQueue[ny][nx] = true;
@@ -110,6 +109,11 @@ void tablet::generateCell(Vector2 coord, const textureMapping& texMap)
       }
     }
   }
+
+  for(int r = 0; r < (int)tabletDims.y; ++r)
+    for(int c = 0; c < (int)tabletDims.x; ++c)
+      if(!tabletPixels[r][c].isSelected)
+        tabletPixels[r][c].updateRoughColor(texMap);
 }
 
 void tablet::reset(const textureMapping& texMap)
