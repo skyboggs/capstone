@@ -70,6 +70,7 @@ int main(int argc, const char** argv)
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "tablet test");
   SetTargetFPS(60);
 
+  {
   Vector2 tabletDims  { 30.0f, 25.0f };
   Vector2 screenDims  { (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT };
   tablet  t(tabletDims, screenDims);
@@ -209,6 +210,8 @@ int main(int argc, const char** argv)
   }
 
   UnloadRenderTexture(t.tabletScreen);
+  } // t and genDetails destroyed here, before CloseWindow
+
   CloseWindow();
   return 0;
 }
