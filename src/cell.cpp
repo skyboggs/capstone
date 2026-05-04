@@ -87,7 +87,8 @@ bool cell::updateTiles(Vector2 offset, Color newColor, const textureMapping& tex
     if(dist > pixelTolerence)
     {
       possibleTiles[idx] = false;
-      validIndexes.erase(validIndexes.begin() + i);
+      validIndexes[i] = validIndexes.back();
+      validIndexes.pop_back();
     }
   }
 
@@ -134,7 +135,8 @@ bool cell::updateTilesCompatibleWith(const cell& source, int dx, int dy, const t
     if(!hasCompatible)
     {
       possibleTiles[myIdx] = false;
-      validIndexes.erase(validIndexes.begin() + i);
+      validIndexes[i] = validIndexes.back();
+      validIndexes.pop_back();
       anyEliminated = true;
     }
   }
