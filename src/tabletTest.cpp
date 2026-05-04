@@ -114,11 +114,9 @@ int main(int argc, const char** argv)
 
     if(IsKeyPressed(KEY_G))
     {
-      srand(currentSeed);
-      t.reset(genDetails);
       bool cancelled = false;
       int stepCount = 0;
-      while(t.step(genDetails))
+      while(!cancelled && t.step(genDetails))
       {
         ++stepCount;
         if(stepCount % 10 == 0)
@@ -135,54 +133,71 @@ int main(int argc, const char** argv)
               WHITE
             );
           EndDrawing();
-          if(IsKeyPressed(KEY_C))
+          if(IsKeyPressed(KEY_C)) { cancelled = true; }
+          if(IsKeyPressed(KEY_P))
           {
-            cancelled = true;
-            break;
+            while(!WindowShouldClose())
+            {
+              BeginDrawing();
+                ClearBackground(BLACK);
+                DrawTexturePro(
+                  t.tabletScreen.texture,
+                  Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
+                  Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
+                  Vector2{0.0f, 0.0f},
+                  0.0f,
+                  WHITE
+                );
+              EndDrawing();
+              if(IsKeyPressed(KEY_P) || IsKeyPressed(KEY_G)) { break; }
+              if(IsKeyPressed(KEY_C)) { cancelled = true; break; }
+            }
           }
         }
       }
       if(cancelled)
       {
+        srand(currentSeed);
         t.reset(genDetails);
+        t.updateTexture();
+        BeginDrawing();
+          ClearBackground(BLACK);
+          DrawTexturePro(
+            t.tabletScreen.texture,
+            Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
+            Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
+            Vector2{0.0f, 0.0f},
+            0.0f,
+            WHITE
+          );
+        EndDrawing();
       }
     }
 
     if(IsKeyPressed(KEY_R))
     {
-      currentSeed = (unsigned int)time(NULL);
-      srand(currentSeed);
+      if(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
+      {
+        srand(currentSeed);
+      }
+      else
+      {
+        currentSeed = (unsigned int)time(NULL);
+        srand(currentSeed);
+      }
       t.reset(genDetails);
-      bool cancelled = false;
-      int stepCount = 0;
-      while(t.step(genDetails))
-      {
-        ++stepCount;
-        if(stepCount % 10 == 0)
-        {
-          t.updateTexture();
-          BeginDrawing();
-            ClearBackground(BLACK);
-            DrawTexturePro(
-              t.tabletScreen.texture,
-              Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-              Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-              Vector2{0.0f, 0.0f},
-              0.0f,
-              WHITE
-            );
-          EndDrawing();
-          if(IsKeyPressed(KEY_C))
-          {
-            cancelled = true;
-            break;
-          }
-        }
-      }
-      if(cancelled)
-      {
-        t.reset(genDetails);
-      }
+      t.updateTexture();
+      BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTexturePro(
+          t.tabletScreen.texture,
+          Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
+          Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
+          Vector2{0.0f, 0.0f},
+          0.0f,
+          WHITE
+        );
+      EndDrawing();
     }
 
     if(IsKeyDown(KEY_S) && (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)))
