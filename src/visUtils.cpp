@@ -24,8 +24,8 @@ void processCommands(string& imagePath,int& tileDims,int argc, const char** argv
 	{
 		int remainingArgs = (commandStack.size() - i - 1);
 
-		cout << "remaining args: " << (remainingArgs) << endl;
-		cout << "[" << i << "]: '" << commandStack[i] << "'" << endl;
+		//cout << "remaining args: " << (remainingArgs) << endl;
+		//cout << "[" << i << "]: '" << commandStack[i] << "'" << endl;
 
 		// checking if the next argument is a flag
 		if(commandStack[i].substr(0,2) == "--")
@@ -342,7 +342,7 @@ void generateTileRecs
 
   for(int i=0;i<tileHolder.size();++i)
   {
-    cout << i << endl;
+    //cout << i << endl;
 		Rectangle sourceRec = tileHolder[i].generateRec();
     Rectangle destRec   = Rectangle{tileHolder[i].coordX * (float)tileDims, tileHolder[i].coordY * (float)tileDims,(float)tileDims,(float)tileDims};
     DrawTexturePro
