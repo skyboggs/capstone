@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
+#include <memory>
+#include <filesystem>
 #include "raylib.h"
 #include "tablet.h"
 #include "textureMapping.h"
@@ -10,6 +13,7 @@
 #define WINDOW_HEIGHT 800
 
 using namespace std;
+namespace fs = filesystem;
 
 int main(int argc, const char** argv)
 {
@@ -18,14 +22,12 @@ int main(int argc, const char** argv)
 
   vector<string> commandStack;
 
-// pushing inputted arguments to the command stack
   for(int i=1;i<argc;++i)
   {
     commandStack.push_back(argv[i]);
     cout << "pushed: " << commandStack[commandStack.size()-1] << endl;
   }
 
-// processing the command stack and setting program configuration
   for(int i=0;i<(int)commandStack.size();++i)
   {
     int remainingArgs = (commandStack.size() - i - 1);
@@ -71,16 +73,30 @@ int main(int argc, const char** argv)
   SetTargetFPS(60);
 
   {
-  Vector2 tabletDims  { 30.0f, 25.0f };
   Vector2 screenDims  { (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT };
+
+  // Scan ../assets/ and pre-load a textureMapping for each image
+  vector<string> assetPaths;
+  for(auto& entry : fs::directory_iterator("../assets/"))
+  {
+    if(entry.is_regular_file())
+      assetPaths.push_back(entry.path().string());
+  }
+  sort(assetPaths.begin(), assetPaths.end());
+
+  vector<unique_ptr<textureMapping>> presentations;
+  for(auto& path : assetPaths)
+  {
+    auto tm = make_unique<textureMapping>(path, tileDim);
+    generateTileRecs(*tm, screenDims);
+    presentations.push_back(move(tm));
+  }
+
+  Vector2 tabletDims  { 50.0f, 35.0f };
   tablet  t(tabletDims, screenDims);
 
   textureMapping genDetails(imagePath, tileDim);
   genDetails.genOverlappingX = true;
-  //genDetails.genOverlappingY = true;
-  //genDetails.genMirroredX    = true;
-  //genDetails.genMirroredY    = true;
-  //genDetails.genRotatedTiles = true;
   generateTileRecs(genDetails, screenDims);
 
   t.reset(genDetails);
@@ -88,6 +104,10 @@ int main(int argc, const char** argv)
 
   int lastRow = -1;
   int lastCol = -1;
+
+  int          presIndex  = 0;
+  int          loopNumber = 0;
+  unsigned int baseSeed   = 0;
 
   while(!WindowShouldClose())
   {
@@ -132,9 +152,10 @@ int main(int argc, const char** argv)
               0.0f,
               WHITE
             );
+            DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
           EndDrawing();
           if(IsKeyPressed(KEY_C)) { cancelled = true; }
-          if(IsKeyPressed(KEY_P))
+          if(IsKeyPressed(KEY_SPACE))
           {
             while(!WindowShouldClose())
             {
@@ -148,8 +169,9 @@ int main(int argc, const char** argv)
                   0.0f,
                   WHITE
                 );
+                DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
               EndDrawing();
-              if(IsKeyPressed(KEY_P) || IsKeyPressed(KEY_G)) { break; }
+              if(IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_G)) { break; }
               if(IsKeyPressed(KEY_C)) { cancelled = true; break; }
             }
           }
@@ -170,8 +192,117 @@ int main(int argc, const char** argv)
             0.0f,
             WHITE
           );
+          DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
         EndDrawing();
       }
+    }
+
+    if(IsKeyPressed(KEY_P) && !presentations.empty())
+    {
+      presIndex  = 0;
+      loopNumber = 0;
+      baseSeed   = (unsigned int)time(NULL);
+      cout << "Entering presentation mode." << endl;
+
+      while(!WindowShouldClose())
+      {
+        srand(baseSeed + (unsigned int)loopNumber);
+        t.reset(*presentations[presIndex]);
+        t.updateTexture();
+
+        // Generation loop
+        bool genSkipped = false;
+        int stepCount = 0;
+        while(!genSkipped && !WindowShouldClose() && t.step(*presentations[presIndex]))
+        {
+          ++stepCount;
+          if(stepCount % 10 == 0)
+          {
+            t.updateTexture();
+            BeginDrawing();
+              ClearBackground(BLACK);
+              DrawTexturePro(
+                t.tabletScreen.texture,
+                Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
+                Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
+                Vector2{0.0f, 0.0f},
+                0.0f,
+                WHITE
+              );
+              DrawText(TextFormat("Seed: %u  Loop: %d", baseSeed, loopNumber), 10, 10, 20, WHITE);
+            EndDrawing();
+
+            if(IsKeyPressed(KEY_P))       { genSkipped = true; goto exitPresentation; }
+            if(IsKeyPressed(KEY_LEFT))
+            {
+              --presIndex;
+              if(presIndex < 0) { presIndex = (int)presentations.size() - 1; --loopNumber; }
+              genSkipped = true;
+            }
+            if(IsKeyPressed(KEY_RIGHT))
+            {
+              ++presIndex;
+              if(presIndex >= (int)presentations.size()) { presIndex = 0; ++loopNumber; }
+              genSkipped = true;
+            }
+          }
+        }
+
+        if(genSkipped) continue;
+
+        // Countdown phase — compute next index before starting the timer
+        int nextIndex = (presIndex + 1) % (int)presentations.size();
+        bool countdownSkipped = false;
+
+        for(int sec = 5; sec >= 1 && !countdownSkipped; --sec)
+        {
+          cout << "New image in " << sec << endl;
+          double startTime = GetTime();
+          while(GetTime() - startTime < 1.0 && !countdownSkipped && !WindowShouldClose())
+          {
+            t.updateTexture();
+            BeginDrawing();
+              ClearBackground(BLACK);
+              DrawTexturePro(
+                t.tabletScreen.texture,
+                Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
+                Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
+                Vector2{0.0f, 0.0f},
+                0.0f,
+                WHITE
+              );
+              DrawText(TextFormat("Seed: %u  Loop: %d", baseSeed, loopNumber), 10, 10, 20, WHITE);
+            EndDrawing();
+
+            if(IsKeyPressed(KEY_P))       { goto exitPresentation; }
+            if(IsKeyPressed(KEY_LEFT))
+            {
+              --presIndex;
+              if(presIndex < 0) { presIndex = (int)presentations.size() - 1; --loopNumber; }
+              countdownSkipped = true;
+            }
+            if(IsKeyPressed(KEY_RIGHT))
+            {
+              ++presIndex;
+              if(presIndex >= (int)presentations.size()) { presIndex = 0; ++loopNumber; }
+              countdownSkipped = true;
+            }
+          }
+        }
+
+        if(countdownSkipped) continue;
+
+        // Natural advance to next image
+        presIndex = nextIndex;
+        if(presIndex == 0) ++loopNumber;
+        cout << "Loading " << assetPaths[presIndex] << endl;
+      }
+
+      exitPresentation:
+      cout << "Exiting presentation mode." << endl;
+      srand(currentSeed);
+      t.reset(genDetails);
+      t.updateTexture();
     }
 
     if(IsKeyPressed(KEY_R))
@@ -197,6 +328,7 @@ int main(int argc, const char** argv)
           0.0f,
           WHITE
         );
+        DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
       EndDrawing();
     }
 
@@ -221,11 +353,12 @@ int main(int argc, const char** argv)
         0.0f,
         WHITE
       );
+      DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
     EndDrawing();
   }
 
   UnloadRenderTexture(t.tabletScreen);
-  } // t and genDetails destroyed here, before CloseWindow
+  } // t, genDetails, and presentations destroyed here, before CloseWindow
 
   CloseWindow();
   return 0;

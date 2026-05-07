@@ -71,7 +71,7 @@ tabletTest: tabletTest.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o ti
 	$(cc) tabletTest.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 capstone: capstone.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o
-	$(cc) capstone.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
+	$(cc) -std=c++17 capstone.cpp tablet.o cell.o tile.o textureMapping.o visUtils.o tileUtils.o visualizerSettings.o -o $@ -I $(header) -I $(raylibHeader) $(lib) $(graphics)
 
 
 clean:
