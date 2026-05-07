@@ -70,6 +70,17 @@ void cell::pickTile(const textureMapping& texMap)
   validIndexes = { pickedIdx };
 }
 
+void cell::pickSpecificTile(int tileIdx, const textureMapping& texMap)
+{
+  int centerOffset = (texMap.tileDims - 1) / 2;
+  selectedColor = texMap.tilePixels[tileIdx][centerOffset * texMap.tileDims + centerOffset];
+  isSelected = true;
+
+  fill(possibleTiles.begin(), possibleTiles.end(), false);
+  possibleTiles[tileIdx] = true;
+  validIndexes = { tileIdx };
+}
+
 // this updates what tiles are now allowed at the current position
 bool cell::updateTiles(Vector2 offset, Color newColor, const textureMapping& texMap)
 {

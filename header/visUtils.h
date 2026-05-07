@@ -23,7 +23,9 @@ void drawTileCompatabilities
 (
   visualizerSettings visConfig,
   const textureMapping& detailMapping,
-  vector<bool> validOptions
+  vector<bool> validOptions,
+  Vector2 offset = {0.0f, 0.0f},
+  int selectedIdx = -1
 );
 
 
@@ -31,6 +33,13 @@ void generateTileRecs
 (
  textureMapping& detailMapper,
  const Vector2& windowDims
+);
+
+// Regenerates only sourceRecs/destRecs for a new window size, without rebuilding the atlas.
+void regenTileRecs
+(
+  textureMapping& detailMapper,
+  const Vector2& windowDims
 );
 
 #endif

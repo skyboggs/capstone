@@ -201,7 +201,9 @@ void drawTileCompatabilities
 (
   visualizerSettings visConfig,
   const textureMapping& detailMapper,
-  vector<bool> validOptions
+  vector<bool> validOptions,
+  Vector2 offset,
+  int selectedIdx
 )
 {
   const vector<Rectangle>& tileSourceRecs = detailMapper.sourceRecs;
@@ -218,61 +220,56 @@ void drawTileCompatabilities
 // setting tileWindowDims
   // holds the dimensions of how many tiles fit in the x and y direction on the screen
 	Vector2 tileWindowDims{imageDims.x - 1.0f, imageDims.y - 1.0f};
-  
+
 // drawing all of the destination rectangles
-  for(int i=0;i<tileSourceRecs.size();++i)
+  for(int i=0;i<(int)tileSourceRecs.size();++i)
   {
   	Rectangle currentRectangle = tileDestRecs[i];
-  
+    currentRectangle.x += offset.x;
+    currentRectangle.y += offset.y;
+
   	DrawTexturePro(currentTexture,tileSourceRecs[i],currentRectangle,Vector2{0.0f,0.0f},0.0f,(highlight && validOptions[i]) ? highlightColor : Color{150,150,150,255});
   }
-  
+
 // drawing lines to add some seperation between the tiles
   if(drawLines)
   {
-    //printVec(tileWindowDims,"tileWindowDims");
-    //printVec(imageDims,"imageDims");
   	Color lineColor = WHITE;
-  
+    float baseX = tileDestRecs[0].x + offset.x;
+    float baseY = tileDestRecs[0].y + offset.y;
+
   // drawing a vertical line to show where the tiles are
   	for(int i=1;i<=detailMapper.tileCount.x;++i)
   	{
   		DrawLineEx
       (
-        Vector2
-        {
-          tileDestRecs[0].x + (i * tileDestRecs[0].width),
-          tileDestRecs[0].y
-        },
-        { 
-          tileDestRecs[0].x + (i * tileDestRecs[0].width),
-          tileDestRecs[0].y + (detailMapper.tileCount.y * tileDestRecs[0].height),
-        },
+        Vector2{ baseX + (i * tileDestRecs[0].width), baseY },
+        Vector2{ baseX + (i * tileDestRecs[0].width), baseY + (detailMapper.tileCount.y * tileDestRecs[0].height) },
         1.9f,
         lineColor
       );
   	}
-  
+
   // drawing a horizontal line to show where the tiles are
   	for(int m=1;m<=detailMapper.tileCount.y;++m)
   	{
       DrawLineEx
       (
-        Vector2
-        {
-          tileDestRecs[0].x,
-          tileDestRecs[0].y + (m * tileDestRecs[0].height)
-        },
-        Vector2
-        {
-          tileDestRecs[0].x + (detailMapper.tileCount.x * tileDestRecs[0].width),
-          tileDestRecs[0].y + (m * tileDestRecs[0].height)
-        },
+        Vector2{ baseX, baseY + (m * tileDestRecs[0].height) },
+        Vector2{ baseX + (detailMapper.tileCount.x * tileDestRecs[0].width), baseY + (m * tileDestRecs[0].height) },
         1.9f,
         lineColor
       );
-
   	}
+  }
+
+// highlight the collapsed tile with a border
+  if(selectedIdx >= 0 && selectedIdx < (int)tileDestRecs.size())
+  {
+    Rectangle r = tileDestRecs[selectedIdx];
+    r.x += offset.x;
+    r.y += offset.y;
+    DrawRectangleLinesEx(r, 2.5f, GREEN);
   }
 }
 
@@ -659,6 +656,56 @@ void generateTileRecs
   };
 
   detailMapper.buildTileCache();
+}
+
+void regenTileRecs(textureMapping& detailMapper, const Vector2& windowDims)
+{
+  vector<Rectangle>& sourceRecs = detailMapper.sourceRecs;
+  vector<Rectangle>& destRecs   = detailMapper.destRecs;
+  const int& tileDims = detailMapper.tileDims;
+
+  sourceRecs.clear();
+  destRecs.clear();
+
+  Vector2 tileWindowDims
+  {
+    detailMapper.tileData.width  / (float)tileDims,
+    detailMapper.tileData.height / (float)tileDims
+  };
+
+  Vector2 tileDisplayDims
+  {
+    (float)windowDims.x / tileWindowDims.x,
+    (float)windowDims.y / tileWindowDims.y
+  };
+
+  Vector2 tileScale { tileDisplayDims.x / (float)tileDims, tileDisplayDims.y / (float)tileDims };
+  if(tileScale.x < tileScale.y) { tileScale.y = tileScale.x; }
+  if(tileScale.y < tileScale.x) { tileScale.x = tileScale.y; }
+
+  Vector2 scaledTileSize { (float)tileDims * tileScale.x, (float)tileDims * tileScale.y };
+
+  detailMapper.displayDims = { scaledTileSize.x * tileWindowDims.x, scaledTileSize.y * tileWindowDims.y };
+
+  for(int i = 0; i < (int)tileWindowDims.y; ++i)
+    for(int m = 0; m < (int)tileWindowDims.x; ++m)
+      sourceRecs.push_back(Rectangle{
+        (float)(m * tileDims),
+        (float)(i * tileDims),
+        (float)tileDims,
+        (float)tileDims
+      });
+
+  for(int i = 0; i < (int)tileWindowDims.y; ++i)
+    for(int m = 0; m < (int)tileWindowDims.x; ++m)
+      destRecs.push_back(Rectangle{
+        scaledTileSize.x * m,
+        scaledTileSize.y * i,
+        scaledTileSize.x,
+        scaledTileSize.y
+      });
+
+  detailMapper.tileCount = tileWindowDims;
 }
 
 

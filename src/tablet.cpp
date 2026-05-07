@@ -63,9 +63,7 @@ void tablet::updateCell(Vector2 loc, Vector2 pixelOffset, Color newColor, const 
 void tablet::generateCell(Vector2 coord, const textureMapping& texMap)
 {
   cell& c = tabletPixels[(int)coord.y][(int)coord.x];
-  if(c.isSelected) { return; }
-
-  c.pickTile(texMap);
+  if(!c.isSelected) { c.pickTile(texMap); }
 
   const int tileDims     = texMap.tileDims;
   const int centerOffset = (tileDims - 1) / 2;

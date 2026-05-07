@@ -8,9 +8,13 @@
 #include "tablet.h"
 #include "textureMapping.h"
 #include "visUtils.h"
+#include "visualizerSettings.h"
 
-#define WINDOW_WIDTH  1200
-#define WINDOW_HEIGHT 800
+// ── Fixed panel sizes — do not scale with the window ─────────────────────────
+constexpr int TABLET_DISPLAY_WIDTH = 600;
+constexpr int VIS_PANEL_WIDTH      = 800;
+constexpr int VIS_PANEL_MARGIN     = 20;
+// ─────────────────────────────────────────────────────────────────────────────
 
 using namespace std;
 namespace fs = filesystem;
@@ -69,11 +73,29 @@ int main(int argc, const char** argv)
 
   unsigned int currentSeed = (unsigned int)time(NULL);
   srand(currentSeed);
-  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "tablet test");
+
+  // Dynamic window dimensions — updated on fullscreen toggle
+  int winW = 1920;
+  int winH = 800;
+
+  InitWindow(winW, winH, "tablet test");
   SetTargetFPS(60);
 
   {
-  Vector2 screenDims  { (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT };
+  // ── Tablet geometry ─────────────────────────────────────────────────────────
+  Vector2 tabletDims        { 50.0f, 35.0f };
+  float   tabletCellSize    = TABLET_DISPLAY_WIDTH / tabletDims.x;
+  float   tabletDisplayHeight = tabletCellSize * tabletDims.y;
+  // These are updated by updateLayout() on fullscreen toggle
+  float   tabletTopY        = (winH - tabletDisplayHeight) / 2.0f;
+  int     tabletLeftMargin  = (winW - VIS_PANEL_WIDTH - TABLET_DISPLAY_WIDTH) / 2;
+  int     visPanelX         = winW - VIS_PANEL_WIDTH;
+  Vector2 tabletScreenDims  { (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight };
+  Vector2 visDims           { (float)(VIS_PANEL_WIDTH  - 2 * VIS_PANEL_MARGIN),
+                              (float)(winH - 2 * VIS_PANEL_MARGIN) };
+  Vector2 visOffset         { (float)(visPanelX + VIS_PANEL_MARGIN),
+                              (float)VIS_PANEL_MARGIN };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // Scan ../assets/ and pre-load a textureMapping for each image
   vector<string> assetPaths;
@@ -88,26 +110,96 @@ int main(int argc, const char** argv)
   for(auto& path : assetPaths)
   {
     auto tm = make_unique<textureMapping>(path, tileDim);
-    generateTileRecs(*tm, screenDims);
+    generateTileRecs(*tm, visDims);
     presentations.push_back(move(tm));
   }
 
-  Vector2 tabletDims  { 50.0f, 35.0f };
-  tablet  t(tabletDims, screenDims);
+  tablet t(tabletDims, tabletScreenDims);
 
   textureMapping genDetails(imagePath, tileDim);
   genDetails.genOverlappingX = true;
-  generateTileRecs(genDetails, screenDims);
+  generateTileRecs(genDetails, visDims);
 
   t.reset(genDetails);
   t.updateTexture();
 
-  int lastRow = -1;
-  int lastCol = -1;
+  visualizerSettings visConfig;
+
+  // -1,-1 means "none"
+  Vector2 hoveredCell    { -1, -1 };
+  Vector2 selectedCell   { -1, -1 };
+  Vector2 lastShownCell  { -1, -1 };
+  bool    xrayMode     = false;
+  bool    isFullscreen = false;
 
   int          presIndex  = 0;
   int          loopNumber = 0;
   unsigned int baseSeed   = 0;
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  // Returns the tablet cell (col, row) under the mouse, or {-1,-1} if outside.
+  auto getHoveredCell = [&]() -> Vector2 {
+    Vector2 mouse  = GetMousePosition();
+    float   localX = mouse.x - tabletLeftMargin;
+    float   localY = mouse.y - tabletTopY;
+    if(localX < 0 || localY < 0) return {-1, -1};
+    int col = (int)(localX / t.pixelDims.x);
+    int row = (int)(localY / t.pixelDims.y);
+    if(col >= 0 && col < (int)tabletDims.x && row >= 0 && row < (int)tabletDims.y)
+      return {(float)col, (float)row};
+    return {-1, -1};
+  };
+
+  auto drawTablet = [&]() {
+    DrawTexturePro(
+      t.tabletScreen.texture,
+      Rectangle{0.0f, 0.0f, (float)TABLET_DISPLAY_WIDTH, -tabletDisplayHeight},
+      Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight},
+      Vector2{0.0f, 0.0f},
+      0.0f,
+      WHITE
+    );
+  };
+
+  // Draws the visualizer panel: hovered cell takes priority over selected cell.
+  // When useFallback is true and neither is valid, shows the last cell that was
+  // actually rendered (lastShownCell). lastShownCell is updated here on every draw.
+  auto drawVisualizer = [&](const textureMapping& texMap, bool useFallback = false) {
+    Vector2 displayCell = (hoveredCell.x >= 0) ? hoveredCell : selectedCell;
+    if(displayCell.x < 0 && useFallback) displayCell = lastShownCell;
+    if(displayCell.x >= 0)
+    {
+      lastShownCell = displayCell;
+      const cell& c = t.tabletPixels[(int)displayCell.y][(int)displayCell.x];
+      int selectedIdx = -1;
+      if(c.isSelected)
+      {
+        for(int i = 0; i < (int)c.possibleTiles.size(); ++i)
+          if(c.possibleTiles[i]) { selectedIdx = i; break; }
+      }
+      drawTileCompatabilities(visConfig, texMap, c.possibleTiles, visOffset, selectedIdx);
+    }
+    else
+    {
+      DrawRectangle(visPanelX, 0, VIS_PANEL_WIDTH, winH, BLACK);
+    }
+  };
+
+  // Draws an orange border on the tablet cell currently shown in the visualizer.
+  auto drawLastShownCellHighlight = [&]() {
+    if(lastShownCell.x < 0) return;
+    DrawRectangleLinesEx(
+      Rectangle{
+        (float)tabletLeftMargin + lastShownCell.x * t.pixelDims.x,
+        tabletTopY              + lastShownCell.y * t.pixelDims.y,
+        t.pixelDims.x,
+        t.pixelDims.y
+      },
+      2.0f,
+      ORANGE
+    );
+  };
 
   auto drawSeedOverlay = [&](unsigned int seed, int loop) {
     const char* text = TextFormat("Seed: %u  Loop: %d", seed, loop);
@@ -116,11 +208,11 @@ int main(int argc, const char** argv)
     DrawText(text, 10, 10, 20, WHITE);
   };
 
-  auto drawCountdownOverlay = [](int sec) {
+  auto drawCountdownOverlay = [&](int sec) {
     const char* text = TextFormat("New image in %d", sec);
     int w = MeasureText(text, 30);
-    int x = (WINDOW_WIDTH - w) / 2;
-    int y = WINDOW_HEIGHT - 60;
+    int x = (winW - w) / 2;
+    int y = winH - 60;
     DrawRectangle(x - 10, y - 5, w + 20, 40, Color{0, 0, 0, 180});
     DrawText(text, x, y, 30, WHITE);
   };
@@ -133,28 +225,111 @@ int main(int argc, const char** argv)
     DrawText(text, 10, 45, 20, WHITE);
   };
 
-  while(!WindowShouldClose())
-  {
-    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+  // Outlines the selected cell in the tablet with a yellow border.
+  auto drawSelectedCellHighlight = [&]() {
+    if(selectedCell.x < 0) return;
+    DrawRectangleLinesEx(
+      Rectangle{
+        (float)tabletLeftMargin + selectedCell.x * t.pixelDims.x,
+        tabletTopY              + selectedCell.y * t.pixelDims.y,
+        t.pixelDims.x,
+        t.pixelDims.y
+      },
+      2.0f,
+      YELLOW
+    );
+  };
+
+  // In x-ray mode, tints every unresolved cell with a semi-transparent overlay.
+  auto drawSelectionOverlay = [&]() {
+    if(!xrayMode) return;
+    Color tint { 255, 0, 100, 80 };
+    for(int row = 0; row < (int)tabletDims.y; ++row)
     {
-      Vector2 mouse = GetMousePosition();
-      int col = (int)(mouse.x / t.pixelDims.x);
-      int row = (int)(mouse.y / t.pixelDims.y);
-      if(col >= 0 && col < (int)tabletDims.x && row >= 0 && row < (int)tabletDims.y)
+      for(int col = 0; col < (int)tabletDims.x; ++col)
       {
-        if(row != lastRow || col != lastCol)
+        if(!t.tabletPixels[row][col].isSelected)
         {
-          t.step({(float)col, (float)row}, genDetails);
-          lastRow = row;
-          lastCol = col;
+          DrawRectangle(
+            (int)(tabletLeftMargin + col * t.pixelDims.x),
+            (int)(tabletTopY       + row * t.pixelDims.y),
+            (int)t.pixelDims.x,
+            (int)t.pixelDims.y,
+            tint
+          );
         }
       }
     }
-    else
+  };
+
+  // Recomputes all layout variables and regenerates tile recs for the new screen size.
+  auto updateLayout = [&]() {
+    winW             = GetScreenWidth();
+    winH             = GetScreenHeight();
+    tabletLeftMargin = (winW - VIS_PANEL_WIDTH - TABLET_DISPLAY_WIDTH) / 2;
+    visPanelX        = winW - VIS_PANEL_WIDTH;
+    tabletTopY       = (winH - tabletDisplayHeight) / 2.0f;
+    visDims          = { (float)(VIS_PANEL_WIDTH - 2 * VIS_PANEL_MARGIN),
+                         (float)(winH - 2 * VIS_PANEL_MARGIN) };
+    visOffset        = { (float)(visPanelX + VIS_PANEL_MARGIN),
+                         (float)VIS_PANEL_MARGIN };
+    regenTileRecs(genDetails, visDims);
+    for(auto& tm : presentations)
+      regenTileRecs(*tm, visDims);
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+
+  while(!WindowShouldClose())
+  {
+    hoveredCell = getHoveredCell();
+    updateConfig(visConfig);
+    if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
+
+    if(IsKeyPressed(KEY_F))
     {
-      lastRow = -1;
-      lastCol = -1;
+      ToggleFullscreen();
+      isFullscreen = !isFullscreen;
+      updateLayout();
     }
+
+    // ── Click handling (idle only) ────────────────────────────────────────────
+    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+      Vector2 mouse = GetMousePosition();
+
+      if(hoveredCell.x >= 0)
+      {
+        // Click on tablet: select cell if not already collapsed
+        if(!t.tabletPixels[(int)hoveredCell.y][(int)hoveredCell.x].isSelected)
+          selectedCell = hoveredCell;
+      }
+      else if(mouse.x >= visPanelX && selectedCell.x >= 0)
+      {
+        // Click on visualizer: collapse selected cell to the clicked tile
+        cell& sc = t.tabletPixels[(int)selectedCell.y][(int)selectedCell.x];
+        if(!sc.isSelected)
+        {
+          float localX = mouse.x - visOffset.x;
+          float localY = mouse.y - visOffset.y;
+          const vector<Rectangle>& dRecs = genDetails.destRecs;
+          for(int i = 0; i < (int)dRecs.size(); ++i)
+          {
+            if(CheckCollisionPointRec({localX, localY}, dRecs[i]))
+            {
+              if(sc.possibleTiles[i])
+              {
+                sc.pickSpecificTile(i, genDetails);
+                t.generateCell(selectedCell, genDetails);
+                t.updateTexture();
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     if(IsKeyPressed(KEY_G))
     {
@@ -166,34 +341,31 @@ int main(int argc, const char** argv)
         if(stepCount % 10 == 0)
         {
           t.updateTexture();
+          hoveredCell = getHoveredCell();
           BeginDrawing();
             ClearBackground(BLACK);
-            DrawTexturePro(
-              t.tabletScreen.texture,
-              Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-              Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-              Vector2{0.0f, 0.0f},
-              0.0f,
-              WHITE
-            );
+            drawTablet();
+            drawSelectedCellHighlight();
+            drawSelectionOverlay();
             drawSeedOverlay(currentSeed, 0);
+            drawVisualizer(genDetails);
+            drawLastShownCellHighlight();
           EndDrawing();
           if(IsKeyPressed(KEY_C)) { cancelled = true; }
           if(IsKeyPressed(KEY_SPACE))
           {
             while(!WindowShouldClose())
             {
+              hoveredCell = getHoveredCell();
+              if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
               BeginDrawing();
                 ClearBackground(BLACK);
-                DrawTexturePro(
-                  t.tabletScreen.texture,
-                  Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-                  Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-                  Vector2{0.0f, 0.0f},
-                  0.0f,
-                  WHITE
-                );
+                drawTablet();
+                drawSelectedCellHighlight();
+                drawSelectionOverlay();
                 drawSeedOverlay(currentSeed, 0);
+                drawVisualizer(genDetails);
+                drawLastShownCellHighlight();
               EndDrawing();
               if(IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_G)) { break; }
               if(IsKeyPressed(KEY_C)) { cancelled = true; break; }
@@ -206,26 +378,26 @@ int main(int argc, const char** argv)
         srand(currentSeed);
         t.reset(genDetails);
         t.updateTexture();
+        selectedCell = {-1, -1};
+        hoveredCell  = getHoveredCell();
         BeginDrawing();
           ClearBackground(BLACK);
-          DrawTexturePro(
-            t.tabletScreen.texture,
-            Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-            Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-            Vector2{0.0f, 0.0f},
-            0.0f,
-            WHITE
-          );
+          drawTablet();
+          drawSelectedCellHighlight();
+          drawSelectionOverlay();
           drawSeedOverlay(currentSeed, 0);
+          drawVisualizer(genDetails);
+          drawLastShownCellHighlight();
         EndDrawing();
       }
     }
 
     if(IsKeyPressed(KEY_P) && !presentations.empty())
     {
-      presIndex  = 0;
-      loopNumber = 0;
-      baseSeed   = (unsigned int)time(NULL);
+      presIndex    = 0;
+      loopNumber   = 0;
+      baseSeed     = (unsigned int)time(NULL);
+      selectedCell = {-1, -1};
       cout << "Entering presentation mode." << endl;
 
       while(!WindowShouldClose())
@@ -233,6 +405,7 @@ int main(int argc, const char** argv)
         srand(baseSeed + (unsigned int)loopNumber);
         t.reset(*presentations[presIndex]);
         t.updateTexture();
+        lastShownCell = {-1, -1};
 
         // Generation loop
         bool genSkipped = false;
@@ -243,21 +416,19 @@ int main(int argc, const char** argv)
           if(stepCount % 10 == 0)
           {
             t.updateTexture();
+            hoveredCell = getHoveredCell();
             BeginDrawing();
               ClearBackground(BLACK);
-              DrawTexturePro(
-                t.tabletScreen.texture,
-                Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-                Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-                Vector2{0.0f, 0.0f},
-                0.0f,
-                WHITE
-              );
+              drawTablet();
+              drawSelectedCellHighlight();
+              drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
               drawFilenameOverlay(assetPaths[presIndex]);
+              drawVisualizer(*presentations[presIndex], true);
+              drawLastShownCellHighlight();
             EndDrawing();
 
-            if(IsKeyPressed(KEY_P))       { genSkipped = true; goto exitPresentation; }
+            if(IsKeyPressed(KEY_P))  { genSkipped = true; goto exitPresentation; }
             if(IsKeyPressed(KEY_LEFT))
             {
               --presIndex;
@@ -275,7 +446,7 @@ int main(int argc, const char** argv)
 
         if(genSkipped) continue;
 
-        // Countdown phase — compute next index before starting the timer
+        // Countdown phase
         int nextIndex = (presIndex + 1) % (int)presentations.size();
         bool countdownSkipped = false;
 
@@ -286,22 +457,20 @@ int main(int argc, const char** argv)
           while(GetTime() - startTime < 1.0 && !countdownSkipped && !WindowShouldClose())
           {
             t.updateTexture();
+            hoveredCell = getHoveredCell();
             BeginDrawing();
               ClearBackground(BLACK);
-              DrawTexturePro(
-                t.tabletScreen.texture,
-                Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-                Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-                Vector2{0.0f, 0.0f},
-                0.0f,
-                WHITE
-              );
+              drawTablet();
+              drawSelectedCellHighlight();
+              drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
               drawFilenameOverlay(assetPaths[presIndex]);
               drawCountdownOverlay(sec);
+              drawVisualizer(*presentations[presIndex], true);
+              drawLastShownCellHighlight();
             EndDrawing();
 
-            if(IsKeyPressed(KEY_P))       { goto exitPresentation; }
+            if(IsKeyPressed(KEY_P))  { goto exitPresentation; }
             if(IsKeyPressed(KEY_LEFT))
             {
               --presIndex;
@@ -319,7 +488,7 @@ int main(int argc, const char** argv)
 
         if(countdownSkipped) continue;
 
-        // Natural advance to next image
+        // Natural advance
         presIndex = nextIndex;
         if(presIndex == 0) ++loopNumber;
         cout << "Loading " << assetPaths[presIndex] << endl;
@@ -330,6 +499,7 @@ int main(int argc, const char** argv)
       srand(currentSeed);
       t.reset(genDetails);
       t.updateTexture();
+      selectedCell = {-1, -1};
     }
 
     if(IsKeyPressed(KEY_R))
@@ -345,17 +515,15 @@ int main(int argc, const char** argv)
       }
       t.reset(genDetails);
       t.updateTexture();
+      selectedCell = {-1, -1};
       BeginDrawing();
         ClearBackground(BLACK);
-        DrawTexturePro(
-          t.tabletScreen.texture,
-          Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-          Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-          Vector2{0.0f, 0.0f},
-          0.0f,
-          WHITE
-        );
-        DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
+        drawTablet();
+        drawSelectedCellHighlight();
+        drawSelectionOverlay();
+        drawSeedOverlay(currentSeed, 0);
+        drawVisualizer(genDetails);
+        drawLastShownCellHighlight();
       EndDrawing();
     }
 
@@ -372,15 +540,12 @@ int main(int argc, const char** argv)
 
     BeginDrawing();
       ClearBackground(BLACK);
-      DrawTexturePro(
-        t.tabletScreen.texture,
-        Rectangle{0.0f, 0.0f, screenDims.x, -screenDims.y},
-        Rectangle{0.0f, 0.0f, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT},
-        Vector2{0.0f, 0.0f},
-        0.0f,
-        WHITE
-      );
-      DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
+      drawTablet();
+      drawSelectedCellHighlight();
+      drawSelectionOverlay();
+      drawSeedOverlay(currentSeed, 0);
+      drawVisualizer(genDetails);
+      drawLastShownCellHighlight();
     EndDrawing();
   }
 

@@ -55,6 +55,7 @@ struct cell
 	// returns selectedColor if selected, roughColor otherwise (BLACK if generateRoughColor is false)
 	Color getCellColor();
 	void pickTile(const textureMapping& texMap);
+	void pickSpecificTile(int tileIdx, const textureMapping& texMap);
 	bool updateTiles(Vector2 offset, Color newColor, const textureMapping& texMap);
 
 	// Eliminates any tile from this cell that has no compatible match among
