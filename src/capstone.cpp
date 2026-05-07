@@ -109,6 +109,30 @@ int main(int argc, const char** argv)
   int          loopNumber = 0;
   unsigned int baseSeed   = 0;
 
+  auto drawSeedOverlay = [&](unsigned int seed, int loop) {
+    const char* text = TextFormat("Seed: %u  Loop: %d", seed, loop);
+    int w = MeasureText(text, 20);
+    DrawRectangle(5, 5, w + 10, 30, Color{0, 0, 0, 180});
+    DrawText(text, 10, 10, 20, WHITE);
+  };
+
+  auto drawCountdownOverlay = [](int sec) {
+    const char* text = TextFormat("New image in %d", sec);
+    int w = MeasureText(text, 30);
+    int x = (WINDOW_WIDTH - w) / 2;
+    int y = WINDOW_HEIGHT - 60;
+    DrawRectangle(x - 10, y - 5, w + 20, 40, Color{0, 0, 0, 180});
+    DrawText(text, x, y, 30, WHITE);
+  };
+
+  auto drawFilenameOverlay = [](const string& path) {
+    string filename = fs::path(path).filename().string();
+    const char* text = TextFormat("File: %s", filename.c_str());
+    int w = MeasureText(text, 20);
+    DrawRectangle(5, 40, w + 10, 30, Color{0, 0, 0, 180});
+    DrawText(text, 10, 45, 20, WHITE);
+  };
+
   while(!WindowShouldClose())
   {
     if(IsMouseButtonDown(MOUSE_BUTTON_LEFT))
@@ -152,7 +176,7 @@ int main(int argc, const char** argv)
               0.0f,
               WHITE
             );
-            DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
+            drawSeedOverlay(currentSeed, 0);
           EndDrawing();
           if(IsKeyPressed(KEY_C)) { cancelled = true; }
           if(IsKeyPressed(KEY_SPACE))
@@ -169,7 +193,7 @@ int main(int argc, const char** argv)
                   0.0f,
                   WHITE
                 );
-                DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
+                drawSeedOverlay(currentSeed, 0);
               EndDrawing();
               if(IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_G)) { break; }
               if(IsKeyPressed(KEY_C)) { cancelled = true; break; }
@@ -192,7 +216,7 @@ int main(int argc, const char** argv)
             0.0f,
             WHITE
           );
-          DrawText(TextFormat("Seed: %u  Loop: 0", currentSeed), 10, 10, 20, WHITE);
+          drawSeedOverlay(currentSeed, 0);
         EndDrawing();
       }
     }
@@ -229,7 +253,8 @@ int main(int argc, const char** argv)
                 0.0f,
                 WHITE
               );
-              DrawText(TextFormat("Seed: %u  Loop: %d", baseSeed, loopNumber), 10, 10, 20, WHITE);
+              drawSeedOverlay(baseSeed, loopNumber);
+              drawFilenameOverlay(assetPaths[presIndex]);
             EndDrawing();
 
             if(IsKeyPressed(KEY_P))       { genSkipped = true; goto exitPresentation; }
@@ -254,7 +279,7 @@ int main(int argc, const char** argv)
         int nextIndex = (presIndex + 1) % (int)presentations.size();
         bool countdownSkipped = false;
 
-        for(int sec = 5; sec >= 1 && !countdownSkipped; --sec)
+        for(int sec = 10; sec >= 1 && !countdownSkipped; --sec)
         {
           cout << "New image in " << sec << endl;
           double startTime = GetTime();
@@ -271,7 +296,9 @@ int main(int argc, const char** argv)
                 0.0f,
                 WHITE
               );
-              DrawText(TextFormat("Seed: %u  Loop: %d", baseSeed, loopNumber), 10, 10, 20, WHITE);
+              drawSeedOverlay(baseSeed, loopNumber);
+              drawFilenameOverlay(assetPaths[presIndex]);
+              drawCountdownOverlay(sec);
             EndDrawing();
 
             if(IsKeyPressed(KEY_P))       { goto exitPresentation; }
