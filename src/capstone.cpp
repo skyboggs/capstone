@@ -78,8 +78,35 @@ int main(int argc, const char** argv)
   int winW = 1920;
   int winH = 800;
 
-  InitWindow(winW, winH, "tablet test");
+  InitWindow(winW, winH, "WFC // NEON ARCADE");
   SetTargetFPS(60);
+
+  // ── Background shaders ──────────────────────────────────────────────────────
+  const char* BG_SHADER_PATHS[3] = {
+    "../shaders/bg_grid.fs",
+    "../shaders/bg_crt.fs",
+    //"../shaders/bg_plasma.fs"
+    //"../shaders/try1.fs"
+    "../shaders/try2.fs" // working
+  };
+  Shader bgShaders[3];
+  int    bgTimeLocs[3];
+  int    bgResLocs[3];
+  for(int i = 0; i < 3; ++i)
+  {
+    bgShaders[i]  = LoadShader(0, BG_SHADER_PATHS[i]);
+    bgTimeLocs[i] = GetShaderLocation(bgShaders[i], "time");
+    bgResLocs[i]  = GetShaderLocation(bgShaders[i], "resolution");
+  }
+  int bgMode = 0; // 0=grid  1=crt  2=plasma  (cycle with B)
+  // ────────────────────────────────────────────────────────────────────────────
+
+  Shader glowShader  = LoadShader(0, "../shaders/rect_glow.fs");
+  int glowTimeLoc    = GetShaderLocation(glowShader, "time");
+  int glowResLoc     = GetShaderLocation(glowShader, "resolution");
+  int glowBoundsLoc  = GetShaderLocation(glowShader, "rectBounds");
+  int glowColorLoc   = GetShaderLocation(glowShader, "glowColor");
+  int glowRadiusLoc  = GetShaderLocation(glowShader, "glowRadius");
 
   {
   // ── Tablet geometry ─────────────────────────────────────────────────────────
@@ -136,7 +163,20 @@ int main(int argc, const char** argv)
   int          loopNumber = 0;
   unsigned int baseSeed   = 0;
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  // Draws the active background shader as a fullscreen rect.
+  auto drawBackground = [&]() {
+    float t      = (float)GetTime();
+    int   rw     = GetRenderWidth();
+    int   rh     = GetRenderHeight();
+    float res[2] = { (float)rw, (float)rh };
+    SetShaderValue(bgShaders[bgMode], bgTimeLocs[bgMode], &t,  SHADER_UNIFORM_FLOAT);
+    SetShaderValue(bgShaders[bgMode], bgResLocs[bgMode],  res, SHADER_UNIFORM_VEC2);
+    BeginShaderMode(bgShaders[bgMode]);
+      DrawRectangle(0, 0, rw, rh, WHITE);
+    EndShaderMode();
+  };
 
   // Returns the tablet cell (col, row) under the mouse, or {-1,-1} if outside.
   auto getHoveredCell = [&]() -> Vector2 {
@@ -162,6 +202,26 @@ int main(int argc, const char** argv)
     );
   };
 
+  const float GLOW_RADIUS = 50.0f;
+  auto drawRectGlow = [&](Rectangle r, Color c) {
+    int   rw       = GetRenderWidth();
+    int   rh       = GetRenderHeight();
+    float res[2]   = { (float)rw, (float)rh };
+    float bnds[4]  = { r.x, r.y, r.width, r.height };
+    float col[3]   = { c.r / 255.0f, c.g / 255.0f, c.b / 255.0f };
+    float glowTime = (float)GetTime();
+    SetShaderValue(glowShader, glowResLoc,    res,       SHADER_UNIFORM_VEC2);
+    SetShaderValue(glowShader, glowTimeLoc,   &glowTime, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(glowShader, glowBoundsLoc, bnds,      SHADER_UNIFORM_VEC4);
+    SetShaderValue(glowShader, glowColorLoc,  col,       SHADER_UNIFORM_VEC3);
+    SetShaderValue(glowShader, glowRadiusLoc, &GLOW_RADIUS, SHADER_UNIFORM_FLOAT);
+    BeginBlendMode(BLEND_ADDITIVE);
+    BeginShaderMode(glowShader);
+      DrawRectangle(0, 0, rw, rh, WHITE);
+    EndShaderMode();
+    EndBlendMode();
+  };
+
   // Draws the visualizer panel: hovered cell takes priority over selected cell.
   // When useFallback is true and neither is valid, shows the last cell that was
   // actually rendered (lastShownCell). lastShownCell is updated here on every draw.
@@ -180,10 +240,7 @@ int main(int argc, const char** argv)
       }
       drawTileCompatabilities(visConfig, texMap, c.possibleTiles, visOffset, selectedIdx);
     }
-    else
-    {
-      DrawRectangle(visPanelX, 0, VIS_PANEL_WIDTH, winH, BLACK);
-    }
+    // no cell selected — shader background shows through
   };
 
   // Draws an orange border on the tablet cell currently shown in the visualizer.
@@ -276,6 +333,9 @@ int main(int argc, const char** argv)
     regenTileRecs(genDetails, visDims);
     for(auto& tm : presentations)
       regenTileRecs(*tm, visDims);
+    float res[2] = { (float)GetRenderWidth(), (float)GetRenderHeight() };
+    for(int i = 0; i < 3; ++i)
+      SetShaderValue(bgShaders[i], bgResLocs[i], res, SHADER_UNIFORM_VEC2);
   };
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -285,6 +345,7 @@ int main(int argc, const char** argv)
     hoveredCell = getHoveredCell();
     updateConfig(visConfig);
     if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
+    if(IsKeyPressed(KEY_B)) { bgMode = (bgMode + 1) % 3; }
 
     if(IsKeyPressed(KEY_F))
     {
@@ -343,8 +404,10 @@ int main(int argc, const char** argv)
           t.updateTexture();
           hoveredCell = getHoveredCell();
           BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground(Color{10, 4, 20, 255});
+            drawBackground();
             drawTablet();
+            drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
             drawSelectedCellHighlight();
             drawSelectionOverlay();
             drawSeedOverlay(currentSeed, 0);
@@ -359,8 +422,10 @@ int main(int argc, const char** argv)
               hoveredCell = getHoveredCell();
               if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
               BeginDrawing();
-                ClearBackground(BLACK);
+                ClearBackground(Color{10, 4, 20, 255});
+            drawBackground();
                 drawTablet();
+                drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
                 drawSelectedCellHighlight();
                 drawSelectionOverlay();
                 drawSeedOverlay(currentSeed, 0);
@@ -381,8 +446,10 @@ int main(int argc, const char** argv)
         selectedCell = {-1, -1};
         hoveredCell  = getHoveredCell();
         BeginDrawing();
-          ClearBackground(BLACK);
+          ClearBackground(Color{10, 4, 20, 255});
+          drawBackground();
           drawTablet();
+          drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
           drawSelectedCellHighlight();
           drawSelectionOverlay();
           drawSeedOverlay(currentSeed, 0);
@@ -418,8 +485,10 @@ int main(int argc, const char** argv)
             t.updateTexture();
             hoveredCell = getHoveredCell();
             BeginDrawing();
-              ClearBackground(BLACK);
+              ClearBackground(Color{10, 4, 20, 255});
+            drawBackground();
               drawTablet();
+              drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -459,8 +528,10 @@ int main(int argc, const char** argv)
             t.updateTexture();
             hoveredCell = getHoveredCell();
             BeginDrawing();
-              ClearBackground(BLACK);
+              ClearBackground(Color{10, 4, 20, 255});
+            drawBackground();
               drawTablet();
+              drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -517,8 +588,10 @@ int main(int argc, const char** argv)
       t.updateTexture();
       selectedCell = {-1, -1};
       BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground(Color{10, 4, 20, 255});
+        drawBackground();
         drawTablet();
+        drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
         drawSelectedCellHighlight();
         drawSelectionOverlay();
         drawSeedOverlay(currentSeed, 0);
@@ -539,8 +612,10 @@ int main(int argc, const char** argv)
     t.updateTexture();
 
     BeginDrawing();
-      ClearBackground(BLACK);
+      ClearBackground(Color{10, 4, 20, 255});
+      drawBackground();
       drawTablet();
+      drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
       drawSelectedCellHighlight();
       drawSelectionOverlay();
       drawSeedOverlay(currentSeed, 0);
@@ -552,6 +627,8 @@ int main(int argc, const char** argv)
   UnloadRenderTexture(t.tabletScreen);
   } // t, genDetails, and presentations destroyed here, before CloseWindow
 
+  UnloadShader(glowShader);
+  for(int i = 0; i < 3; ++i) UnloadShader(bgShaders[i]);
   CloseWindow();
   return 0;
 }
