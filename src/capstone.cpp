@@ -202,25 +202,6 @@ int main(int argc, const char** argv)
     );
   };
 
-  const float GLOW_RADIUS = 50.0f;
-  auto drawRectGlow = [&](Rectangle r, Color c) {
-    int   rw       = GetRenderWidth();
-    int   rh       = GetRenderHeight();
-    float res[2]   = { (float)rw, (float)rh };
-    float bnds[4]  = { r.x, r.y, r.width, r.height };
-    float col[3]   = { c.r / 255.0f, c.g / 255.0f, c.b / 255.0f };
-    float glowTime = (float)GetTime();
-    SetShaderValue(glowShader, glowResLoc,    res,       SHADER_UNIFORM_VEC2);
-    SetShaderValue(glowShader, glowTimeLoc,   &glowTime, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(glowShader, glowBoundsLoc, bnds,      SHADER_UNIFORM_VEC4);
-    SetShaderValue(glowShader, glowColorLoc,  col,       SHADER_UNIFORM_VEC3);
-    SetShaderValue(glowShader, glowRadiusLoc, &GLOW_RADIUS, SHADER_UNIFORM_FLOAT);
-    BeginBlendMode(BLEND_ADDITIVE);
-    BeginShaderMode(glowShader);
-      DrawRectangle(0, 0, rw, rh, WHITE);
-    EndShaderMode();
-    EndBlendMode();
-  };
 
   // Draws the visualizer panel: hovered cell takes priority over selected cell.
   // When useFallback is true and neither is valid, shows the last cell that was
@@ -407,7 +388,6 @@ int main(int argc, const char** argv)
             ClearBackground(Color{10, 4, 20, 255});
             drawBackground();
             drawTablet();
-            drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
             drawSelectedCellHighlight();
             drawSelectionOverlay();
             drawSeedOverlay(currentSeed, 0);
@@ -425,7 +405,6 @@ int main(int argc, const char** argv)
                 ClearBackground(Color{10, 4, 20, 255});
             drawBackground();
                 drawTablet();
-                drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
                 drawSelectedCellHighlight();
                 drawSelectionOverlay();
                 drawSeedOverlay(currentSeed, 0);
@@ -449,7 +428,6 @@ int main(int argc, const char** argv)
           ClearBackground(Color{10, 4, 20, 255});
           drawBackground();
           drawTablet();
-          drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
           drawSelectedCellHighlight();
           drawSelectionOverlay();
           drawSeedOverlay(currentSeed, 0);
@@ -488,7 +466,6 @@ int main(int argc, const char** argv)
               ClearBackground(Color{10, 4, 20, 255});
             drawBackground();
               drawTablet();
-              drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -531,7 +508,6 @@ int main(int argc, const char** argv)
               ClearBackground(Color{10, 4, 20, 255});
             drawBackground();
               drawTablet();
-              drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -591,7 +567,6 @@ int main(int argc, const char** argv)
         ClearBackground(Color{10, 4, 20, 255});
         drawBackground();
         drawTablet();
-        drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
         drawSelectedCellHighlight();
         drawSelectionOverlay();
         drawSeedOverlay(currentSeed, 0);
@@ -615,7 +590,6 @@ int main(int argc, const char** argv)
       ClearBackground(Color{10, 4, 20, 255});
       drawBackground();
       drawTablet();
-      drawRectGlow(Rectangle{(float)tabletLeftMargin, tabletTopY, (float)TABLET_DISPLAY_WIDTH, tabletDisplayHeight}, Color{255, 20, 180, 255});
       drawSelectedCellHighlight();
       drawSelectionOverlay();
       drawSeedOverlay(currentSeed, 0);

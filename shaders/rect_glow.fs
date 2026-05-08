@@ -27,6 +27,6 @@ void main()
     float pulse = 0.75 + 0.25 * sin(time * 2.5);
     glow *= pulse;
 
-    // pure additive RGB — blend mode handles compositing
-    finalColor = vec4(glowColor * glow, 1.0);
+    // alpha carries the glow intensity so standard blend mode composites correctly
+    finalColor = vec4(glowColor, glow);
 }

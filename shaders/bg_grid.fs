@@ -9,7 +9,7 @@ uniform vec2 resolution;
 
 void main()
 {
-    vec2 uv = fragTexCoord; // (0,0) = top-left, (1,1) = bottom-right
+    vec2 uv = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y) / resolution;
 
     float horizon = 0.50;
 
