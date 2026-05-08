@@ -9,7 +9,7 @@ uniform vec2 resolution;
 
 void main()
 {
-    vec2 uv = fragTexCoord;
+    vec2 uv = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y) / resolution;
     // aspect-correct coordinates centered at (0,0)
     vec2 p = (uv - 0.5) * vec2(resolution.x / resolution.y, 1.0);
 

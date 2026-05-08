@@ -85,9 +85,9 @@ int main(int argc, const char** argv)
   const char* BG_SHADER_PATHS[3] = {
     "../shaders/bg_grid.fs",
     "../shaders/bg_crt.fs",
-    //"../shaders/bg_plasma.fs"
+    "../shaders/bg_plasma.fs"
     //"../shaders/try1.fs"
-    "../shaders/try2.fs" // working
+    //"../shaders/try2.fs" // working
   };
   Shader bgShaders[3];
   int    bgTimeLocs[3];

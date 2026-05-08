@@ -9,13 +9,13 @@ uniform vec2 resolution;
 
 void main()
 {
-    vec2 uv = fragTexCoord; // (0,0) = top-left
+    vec2 uv = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y) / resolution;
 
     // -- base dark purple background -------------------------------------------
-    vec3 col = vec3(0.04, 0.01, 0.09);
+    vec3 col = vec3(0.10, 0.03, 0.20);
 
     // subtle vertical gradient: top slightly lighter (phosphor bloom from above)
-    col = mix(col, vec3(0.07, 0.02, 0.14), 1.0 - uv.y);
+    col = mix(col, vec3(0.15, 0.05, 0.28), 1.0 - uv.y);
 
     // -- scanlines -------------------------------------------------------------
     // one dark band per 2 screen pixels
