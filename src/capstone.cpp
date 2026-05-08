@@ -11,9 +11,15 @@
 #include "visualizerSettings.h"
 
 // ── Fixed panel sizes — do not scale with the window ─────────────────────────
-constexpr int TABLET_DISPLAY_WIDTH = 600;
-constexpr int VIS_PANEL_WIDTH      = 800;
-constexpr int VIS_PANEL_MARGIN     = 20;
+constexpr int TABLET_DISPLAY_WIDTH  = 600;
+constexpr int VIS_PANEL_WIDTH       = 800;
+constexpr int VIS_PANEL_MARGIN      = 20;
+constexpr int INPUT_IMG_PANEL_WIDTH   = 200;  // width of the input image panel left of the tablet
+constexpr int INPUT_IMG_PANEL_MARGIN  = 10;   // padding inside the input image panel
+constexpr int INPUT_IMG_PANEL_GAP     = 20;   // horizontal gap between input panel and tablet
+constexpr int INPUT_IMG_LABEL_SIZE    = 16;   // font size for info labels
+constexpr int INPUT_IMG_LABEL_GAP     = 8;    // gap between image bottom and first label
+constexpr int INPUT_IMG_LABEL_SPACING = 4;    // spacing between label lines
 // ─────────────────────────────────────────────────────────────────────────────
 
 using namespace std;
@@ -110,7 +116,7 @@ int main(int argc, const char** argv)
 
   {
   // ── Tablet geometry ─────────────────────────────────────────────────────────
-  Vector2 tabletDims        { 50.0f, 35.0f };
+  Vector2 tabletDims        { 55.0f, 45.0f };
   float   tabletCellSize    = TABLET_DISPLAY_WIDTH / tabletDims.x;
   float   tabletDisplayHeight = tabletCellSize * tabletDims.y;
   // These are updated by updateLayout() on fullscreen toggle
@@ -140,6 +146,10 @@ int main(int argc, const char** argv)
     generateTileRecs(*tm, visDims);
     presentations.push_back(move(tm));
   }
+
+  // Original (non-overlapping) input image shown in the left panel
+  Texture2D inputImgTexture    = LoadTexture(imagePath.c_str());
+  string    inputImgLoadedPath = imagePath;
 
   tablet t(tabletDims, tabletScreenDims);
 
@@ -262,6 +272,57 @@ int main(int argc, const char** argv)
     int w = MeasureText(text, 20);
     DrawRectangle(5, 40, w + 10, 30, Color{0, 0, 0, 180});
     DrawText(text, 10, 45, 20, WHITE);
+  };
+
+  // Swaps inputImgTexture when the displayed source image changes.
+  auto loadInputImage = [&](const string& path) {
+    if(inputImgLoadedPath != path) {
+      UnloadTexture(inputImgTexture);
+      inputImgTexture    = LoadTexture(path.c_str());
+      inputImgLoadedPath = path;
+    }
+  };
+
+  // Draws the original input image to the left of the tablet, preserving aspect ratio,
+  // with dimension and tile size labels below it.
+  auto drawInputImage = [&]() {
+    float panelX  = (float)(tabletLeftMargin - INPUT_IMG_PANEL_GAP - INPUT_IMG_PANEL_WIDTH);
+    float panelCX = panelX + INPUT_IMG_PANEL_WIDTH * 0.5f;
+    float areaW   = (float)(INPUT_IMG_PANEL_WIDTH - 2 * INPUT_IMG_PANEL_MARGIN);
+    float imgW    = (float)inputImgTexture.width;
+    float imgH    = (float)inputImgTexture.height;
+
+    // Reserve space at the bottom for two label lines
+    float labelBlockH = 2 * INPUT_IMG_LABEL_SIZE + INPUT_IMG_LABEL_SPACING + INPUT_IMG_LABEL_GAP;
+    float areaH       = tabletDisplayHeight - labelBlockH;
+
+    float scale = min(areaW / imgW, areaH / imgH);
+    float dw    = imgW * scale;
+    float dh    = imgH * scale;
+    float dx    = panelX + INPUT_IMG_PANEL_MARGIN + (areaW - dw) * 0.5f;
+    float dy    = tabletTopY + (areaH - dh) * 0.5f;
+
+    DrawTexturePro(
+      inputImgTexture,
+      Rectangle{0.0f, 0.0f, imgW, imgH},
+      Rectangle{dx, dy, dw, dh},
+      Vector2{0.0f, 0.0f},
+      0.0f,
+      WHITE
+    );
+    DrawRectangleLinesEx(Rectangle{dx, dy, dw, dh}, 1.5f, Color{200, 200, 200, 120});
+
+    // Dimension label: "WxH"
+    float labelY1 = tabletTopY + areaH + INPUT_IMG_LABEL_GAP;
+    const char* dimText  = TextFormat("%dx%d", (int)imgW, (int)imgH);
+    int         dimTextW = MeasureText(dimText, INPUT_IMG_LABEL_SIZE);
+    DrawText(dimText, (int)(panelCX - dimTextW * 0.5f), (int)labelY1, INPUT_IMG_LABEL_SIZE, LIGHTGRAY);
+
+    // Tile size label: "Tile: NxN"
+    float labelY2 = labelY1 + INPUT_IMG_LABEL_SIZE + INPUT_IMG_LABEL_SPACING;
+    const char* tileText  = TextFormat("Tile: %dx%d", tileDim, tileDim);
+    int         tileTextW = MeasureText(tileText, INPUT_IMG_LABEL_SIZE);
+    DrawText(tileText, (int)(panelCX - tileTextW * 0.5f), (int)labelY2, INPUT_IMG_LABEL_SIZE, LIGHTGRAY);
   };
 
   // Outlines the selected cell in the tablet with a yellow border.
@@ -403,6 +464,7 @@ int main(int argc, const char** argv)
             ClearBackground(Color{10, 4, 20, 255});
             drawBackground();
             drawTablet();
+            drawInputImage();
             drawSelectedCellHighlight();
             drawSelectionOverlay();
             drawSeedOverlay(currentSeed, 0);
@@ -418,8 +480,9 @@ int main(int argc, const char** argv)
               if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
               BeginDrawing();
                 ClearBackground(Color{10, 4, 20, 255});
-            drawBackground();
+                drawBackground();
                 drawTablet();
+                drawInputImage();
                 drawSelectedCellHighlight();
                 drawSelectionOverlay();
                 drawSeedOverlay(currentSeed, 0);
@@ -443,6 +506,7 @@ int main(int argc, const char** argv)
           ClearBackground(Color{10, 4, 20, 255});
           drawBackground();
           drawTablet();
+          drawInputImage();
           drawSelectedCellHighlight();
           drawSelectionOverlay();
           drawSeedOverlay(currentSeed, 0);
@@ -462,6 +526,7 @@ int main(int argc, const char** argv)
 
       while(!WindowShouldClose())
       {
+        loadInputImage(assetPaths[presIndex]);
         srand(baseSeed + (unsigned int)loopNumber);
         t.reset(*presentations[presIndex]);
         t.updateTexture();
@@ -479,8 +544,9 @@ int main(int argc, const char** argv)
             hoveredCell = getHoveredCell();
             BeginDrawing();
               ClearBackground(Color{10, 4, 20, 255});
-            drawBackground();
+              drawBackground();
               drawTablet();
+              drawInputImage();
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -521,8 +587,9 @@ int main(int argc, const char** argv)
             hoveredCell = getHoveredCell();
             BeginDrawing();
               ClearBackground(Color{10, 4, 20, 255});
-            drawBackground();
+              drawBackground();
               drawTablet();
+              drawInputImage();
               drawSelectedCellHighlight();
               drawSelectionOverlay();
               drawSeedOverlay(baseSeed, loopNumber);
@@ -557,6 +624,7 @@ int main(int argc, const char** argv)
       }
 
       exitPresentation:
+      loadInputImage(imagePath);
       cout << "Exiting presentation mode." << endl;
       srand(currentSeed);
       t.reset(genDetails);
@@ -582,6 +650,7 @@ int main(int argc, const char** argv)
         ClearBackground(Color{10, 4, 20, 255});
         drawBackground();
         drawTablet();
+        drawInputImage();
         drawSelectedCellHighlight();
         drawSelectionOverlay();
         drawSeedOverlay(currentSeed, 0);
@@ -605,6 +674,7 @@ int main(int argc, const char** argv)
       ClearBackground(Color{10, 4, 20, 255});
       drawBackground();
       drawTablet();
+      drawInputImage();
       drawSelectedCellHighlight();
       drawSelectionOverlay();
       drawSeedOverlay(currentSeed, 0);
@@ -613,6 +683,7 @@ int main(int argc, const char** argv)
     EndDrawing();
   }
 
+  UnloadTexture(inputImgTexture);
   UnloadRenderTexture(t.tabletScreen);
   } // t, genDetails, and presentations destroyed here, before CloseWindow
 
