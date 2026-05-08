@@ -78,7 +78,7 @@ int main(int argc, const char** argv)
   int winW = 1920;
   int winH = 800;
 
-  InitWindow(winW, winH, "WFC // NEON ARCADE");
+  InitWindow(winW, winH, "capstone presentation");
   SetTargetFPS(60);
 
   // ── Background shaders ──────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ int main(int argc, const char** argv)
     "../shaders/bg_crt.fs",
     "../shaders/bg_plasma.fs"
     //"../shaders/try1.fs"
-    //"../shaders/try2.fs" // working
+    //"../shaders/try2.fs"
   };
   Shader bgShaders[3];
   int    bgTimeLocs[3];
@@ -156,8 +156,9 @@ int main(int argc, const char** argv)
   Vector2 hoveredCell    { -1, -1 };
   Vector2 selectedCell   { -1, -1 };
   Vector2 lastShownCell  { -1, -1 };
-  bool    xrayMode     = false;
-  bool    isFullscreen = false;
+  bool    xrayMode          = false;
+  bool    isFullscreen      = false;
+  bool    roughColorEnabled = false;
 
   int          presIndex  = 0;
   int          loopNumber = 0;
@@ -327,6 +328,20 @@ int main(int argc, const char** argv)
     updateConfig(visConfig);
     if(IsKeyPressed(KEY_X)) { xrayMode = !xrayMode; }
     if(IsKeyPressed(KEY_B)) { bgMode = (bgMode + 1) % 3; }
+    if(IsKeyPressed(KEY_V))
+    {
+      roughColorEnabled = !roughColorEnabled;
+      for(int row = 0; row < (int)tabletDims.y; ++row)
+        for(int col = 0; col < (int)tabletDims.x; ++col)
+        {
+          cell& c = t.tabletPixels[row][col];
+          c.generateRoughColor = roughColorEnabled;
+          //if(roughColorEnabled && !c.isSelected)
+          if(!c.isSelected)
+            c.updateRoughColor(genDetails);
+        }
+      t.updateTexture();
+    }
 
     if(IsKeyPressed(KEY_F))
     {

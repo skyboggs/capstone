@@ -4,6 +4,8 @@
 #include "raylib.h"
 #include "cell.h"
 #include <vector>
+#include <set>
+#include <tuple>
 
 using std::vector;
 
@@ -20,6 +22,14 @@ struct tablet
   vector<vector<cell>> tabletPixels;
 
   RenderTexture2D tabletScreen;
+
+  // Min-entropy priority queue: (validCount, row, col).
+  // Kept in sync with each cell's validIndexes.size() so step() is O(log N)
+  // instead of O(W*H).
+  std::set<std::tuple<int, int, int>> entropyQueue;
+  // Parallel grid tracking each cell's current count in entropyQueue (-1 = not present).
+  // Needed for O(1) erase-by-cell when counts change during BFS propagation.
+  vector<vector<int>> cellQueueCount;
 
 
 	/////////////////
