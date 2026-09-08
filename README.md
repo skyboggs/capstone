@@ -6,6 +6,7 @@
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-blue) ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20WSL-lightgrey) ![Library](https://img.shields.io/badge/library-raylib-orange)
 
+This is a procedural image general tool used for low resolution images. This was built for my capstone project. Not all images used in the assets are owned by me, but used from the Wave Function Collapse repo here: https://github.com/mxgmn/WaveFunctionCollapse
 A C++ procedural generation tool that implements the Wave Function Collapse algorithm. Give it a sample image and it generates new images that look locally similar — same patterns, new arrangement.
 
 ## What is Wave Function Collapse?
